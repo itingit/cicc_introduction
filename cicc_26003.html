@@ -56,7 +56,7 @@
       flex-direction: column;
     }
 
-    /* Top HUD Bar - Case title in place of Mario Standby */
+    /* Top HUD Bar */
     .game-hud {
       background: #000;
       padding: 8px 16px;
@@ -136,7 +136,6 @@
       box-shadow: 0 3px #614400;
     }
 
-    /* Master Stage Header Dashboard: Criteria and Total Score (from cicc_score.html) */
     .stage-master-board {
       background: #000;
       border-bottom: 3px solid #333;
@@ -277,7 +276,6 @@
       100% { box-shadow: 0 0 16px #ff3300; }
     }
 
-    /* Compact Stage Viewport to ensure Card 1 fits on 1080p full screen */
     .stage-viewport {
       width: 100%;
       height: 240px;
@@ -466,7 +464,6 @@
       border-radius: 2px;
     }
 
-    /* Castle & Flag Finish Line */
     .castle-flag-area {
       position: absolute;
       right: 10px;
@@ -539,7 +536,6 @@
       100% { opacity: 0; transform: translateY(-46px); }
     }
 
-    /* Lower Detailed Dimensions Section */
     .matrix-section {
       background: #141420;
       padding: 12px 16px;
@@ -628,7 +624,7 @@
       font-weight: 500;
     }
 
-    /* Options Grid (from cicc_score.html) */
+    /* Options Grid */
     .options-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -1140,7 +1136,7 @@
             <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
           </div>
           <div class="case-incident-desc">
-            團隊於收到客退品後一週即收斂問題根因，並確認對策:拆除D3二極體&升級寬溫電池
+            雖有重工執行方案，但即將出貨設備因重工影響交期，已出貨設備也需等待逐批寄回重工，同時電池更換，受到國際物流對電池運送的相關限制，讓重工難度增加
           </div>
         </div>
 
@@ -1171,10 +1167,10 @@
         <div class="answer-reveal-box" id="reveal-urgency">
           <div class="reveal-title-row">
             <span class="reveal-badge" id="reveal-badge-urgency"></span>
-            <span class="reveal-official-pts">官方裁決：0 分</span>
+            <span class="reveal-official-pts">官方裁決：3 分</span>
           </div>
           <div class="reveal-reason-text" id="reveal-reason-urgency">
-            團隊於收到客退品後一週內即迅速收斂問題根因並確認對策，進度受控未停滯延宕，符合「已收斂」0 分標準。
+            重工方案受國際物流電池運送限制與交期延宕影響，處理狀態受到實質阻礙，符合 3 分標準。
           </div>
         </div>
       </div>
@@ -1197,7 +1193,7 @@
             <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
           </div>
           <div class="case-incident-desc">
-            雖有重工執行方案，但即將出貨設備因重工影響交期，已出貨設備也需等待逐批寄回重工。
+            團隊收到客退品後在短時間內就確認明確可執行之對策:拆除D3二極體&升級寬溫電池
           </div>
         </div>
 
@@ -1228,10 +1224,10 @@
         <div class="answer-reveal-box" id="reveal-risk">
           <div class="reveal-title-row">
             <span class="reveal-badge" id="reveal-badge-risk"></span>
-            <span class="reveal-official-pts">官方裁決：3 分</span>
+            <span class="reveal-official-pts">官方裁決：0 分</span>
           </div>
           <div class="reveal-reason-text" id="reveal-reason-risk">
-            已有重工方案，但待出貨設備影響交期且已出貨需逐批召回，需跨部門協調與交期成本，故評定為 3 分。
+            團隊收到客退品後在短時間內已迅速確認明確可執行之硬體對策，風險可控，符合 0 分標準。
           </div>
         </div>
       </div>
@@ -1249,15 +1245,19 @@
   </div>
 
   <script>
-    // Video Clip Settings: 28:15 to 28:23 (1695s to 1703s)
     const VIDEO_CLIP_CONFIG = {
-      START_TIME: 1695,
-      END_TIME: 1703
+      START_TIME: 0,
+      END_TIME: Infinity
     };
 
     const fsContainer = document.getElementById('fullscreen-video-container');
     const eggVideo = document.getElementById('egg-mp4-video');
     const btnMissionComplete = document.getElementById('btn-mission-complete');
+
+    // 播放完影片時僅退出全螢幕並關閉影片播放器
+    eggVideo.addEventListener('ended', () => {
+      exitFullscreenEasterEgg();
+    });
 
     eggVideo.addEventListener('timeupdate', () => {
       if (eggVideo.currentTime >= VIDEO_CLIP_CONFIG.END_TIME) {
@@ -1319,12 +1319,12 @@
         reason: '包含MCN、融合元儲及翼飛等多家客戶(≥2客戶)，影響設備>140台，但根因未擴及其他產品線，符合 3 分標準。'
       },
       urgency: {
-        correct: 0,
-        reason: '團隊於收到客退品後一週內即迅速收斂問題根因並確認對策，進度受控未停滯延宕，符合「已收斂」0 分標準。'
+        correct: 3,
+        reason: '重工方案受國際物流電池運送限制與交期延宕影響，處理狀態受到實質阻礙，符合 3 分標準。'
       },
       risk: {
-        correct: 3,
-        reason: '已有重工方案，但待出貨設備影響交期且已出貨需逐批召回，需跨部門協調與交期成本，故評定為 3 分。'
+        correct: 0,
+        reason: '團隊收到客退品後在短時間內已迅速確認明確可執行之硬體對策，風險可控，符合 0 分標準。'
       }
     };
 
@@ -1599,8 +1599,8 @@
       const demoSequence = [
         { dim: 'impact', val: 5, delay: 800 },
         { dim: 'trend', val: 3, delay: 800 },
-        { dim: 'urgency', val: 0, delay: 800 },
-        { dim: 'risk', val: 3, delay: 900 }
+        { dim: 'urgency', val: 3, delay: 800 },
+        { dim: 'risk', val: 0, delay: 900 }
       ];
 
       for (const step of demoSequence) {
