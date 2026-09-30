@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CICC 危機指揮中心專案學習導覽</title>
+  <style>
+    :root {
+      --navbar-height: 64px;
+      --navbar-bg: rgba(20, 20, 32, 0.95);
+      --nav-hover: #1f1f32;
+      --nav-active: #fc3800;
+      --accent-yellow: #fcbc00;
+      --border-color: #33334d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+      background-color: #0b0b12;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 頂部觸發熱區 (滑鼠移到最頂部 14px 區域時展開) */
+    .top-hover-trigger {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 14px;
+      z-index: 105;
+      background: transparent;
+    }
+
+    /* 頂部導覽列：預設隱藏，懸停時滑出 */
+    header.top-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--navbar-height);
+      min-height: var(--navbar-height);
+      background: var(--navbar-bg);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+      gap: 16px;
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    }
+
+    /* 滑鼠懸停於頂部感應區或導覽列本身時顯示 */
+    .top-hover-trigger:hover ~ header.top-navbar,
+    header.top-navbar:hover {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #fc3800;
+      border: 2px solid #fff;
+      border-radius: 6px;
+      font-family: monospace, sans-serif;
+      font-weight: 900;
+      color: #fcbc00;
+      font-size: 18px;
+      box-shadow: 0 3px 0 #8b2500;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: #8f92a4;
+      font-family: monospace;
+      letter-spacing: 0.3px;
+    }
+
+    /* 頂部導覽按鈕選單 */
+    nav.nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 4px 0;
+    }
+
+    nav.nav-menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 15px;
+      border-radius: 8px;
+      background: transparent;
+      color: #b0b4c8;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+
+    .nav-item:hover {
+      background: var(--nav-hover);
+      color: #fff;
+      border-color: #4a4a6b;
+      transform: translateY(-1px);
+    }
+
+    .nav-item.active {
+      background: #24243a;
+      color: var(--accent-yellow);
+      border-color: var(--accent-yellow);
+      box-shadow: inset 0 -3px 0 #fc3800, 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-icon {
+      font-size: 16px;
+      display: inline-block;
+    }
+
+    /* 主內容區塊：佔滿完整螢幕高度 */
+    main.main-viewport {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      background: #0f1019;
+    }
+
+    .content-panel {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .content-panel.active {
+      display: block;
+    }
+
+    /* 2. 圖片直接全螢幕滿版展示 (無邊框、自適應最大化) */
+    .image-fullscreen-view {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0b0b12;
+      overflow: hidden;
+    }
+
+    .image-fullscreen-view img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 嵌入子頁面的 iframe */
+    iframe.content-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* 響應式微調 */
+    @media (max-width: 920px) {
+      header.top-navbar {
+        padding: 0 12px;
+        gap: 10px;
+      }
+      .brand-sub {
+        display: none;
+      }
+      .nav-item {
+        padding: 7px 10px;
+        font-size: 12.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部滑鼠移動感應熱區 -->
+  <div class="top-hover-trigger"></div>
+
+  <!-- 頂部導覽列 (預設隱藏，懸停於最上方時滑出) -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <div class="brand-logo">C</div>
+      <div class="brand-text">
+        <span class="brand-title">CICC 指揮中心</span>
+        <span class="brand-sub">Critical Issue Command Center</span>
+      </div>
+    </div>
+
+    <!-- 頂部各頁面切換選單 -->
+    <nav class="nav-menu">
+      <a class="nav-item active" data-target="panel-what-is-cicc">
+        <span class="nav-icon">💡</span>
+        <span>What is CICC</span>
+      </a>
+      <a class="nav-item" data-target="panel-flow">
+        <span class="nav-icon">🕹️</span>
+        <span>CICC Flow</span>
+      </a>
+      <a class="nav-item" data-target="panel-score">
+        <span class="nav-icon">📊</span>
+        <span>CICC Score</span>
+      </a>
+      <a class="nav-item" data-target="panel-cases">
+        <span class="nav-icon">📋</span>
+        <span>CICC Cases</span>
+      </a>
+      <a class="nav-item" data-target="panel-practice">
+        <span class="nav-icon">🏁</span>
+        <span>Case practice</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- 主內容檢視區 -->
+  <main class="main-viewport">
+    
+    <!-- 1. What is CICC (第 1 張圖：直接滿版全螢幕) -->
+    <section id="panel-what-is-cicc" class="content-panel active">
+      <div class="image-fullscreen-view">
+        <img src="cicc_overview.png" alt="What is CICC? Critical Issue Command Center">
+      </div>
+    </section>
+
+    <!-- 2. CICC Flow (cicc.html) -->
+    <section id="panel-flow" class="content-panel">
+      <iframe src="cicc.html" class="content-frame" title="CICC Flow Adventure"></iframe>
+    </section>
+
+    <!-- 3. CICC Score (cicc_score.html) -->
+    <section id="panel-score" class="content-panel">
+      <iframe src="cicc_score.html" class="content-frame" title="CICC Score Calculator"></iframe>
+    </section>
+
+    <!-- 4. CICC Cases (第 2 張圖：直接滿版全螢幕) -->
+    <section id="panel-cases" class="content-panel">
+      <div class="image-fullscreen-view">
+        <img src="cicc_cases.png" alt="CICC Cases in 2026">
+      </div>
+    </section>
+
+    <!-- 5. Case practice (cicc_26003.html) -->
+    <section id="panel-practice" class="content-panel">
+      <iframe src="cicc_26003.html" class="content-frame" title="CICC Case Practice CICC-26003"></iframe>
+    </section>
+
+  </main>
+
+  <script>
+    // 1. 點擊頁面任一處時自動進入全螢幕顯示 (符合瀏覽器互動安全政策)
+    function activateFullscreen() {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) {
+          docEl.msRequestFullscreen();
+        }
+      }
+    }
+    window.addEventListener('click', activateFullscreen, { once: true });
+
+    // 點選頂部選單直接切換分頁
+    const navItems = document.querySelectorAll('.nav-item');
+    const panels = document.querySelectorAll('.content-panel');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        activateFullscreen();
+        const targetId = item.getAttribute('data-target');
+
+        navItems.forEach(nav => nav.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        item.classList.add('active');
+        const targetPanel = document.getElementById(targetId);
+        if (targetPanel) {
+          targetPanel.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
