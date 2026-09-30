@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CICC 升級流程 - 瑪利歐互動冒險闖關</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;600;800;900&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    .font-pixel {
+      font-family: 'Press Start 2P', monospace;
+    }
+    .font-retro-sub {
+      font-family: 'VT323', monospace;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #111827;
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      image-rendering: pixelated;
+    }
+
+    /* 寬幅巨屏 1600x900 等比例視窗縮放容器 */
+    #viewport-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1600px;
+      height: 900px;
+      transform-origin: center center;
+      background-color: #5c94fc;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Pixel Art Borders & Shadows */
+    .nes-box {
+      border: 4px solid #000;
+      box-shadow: 0 5px 0 #000, 0 -5px 0 #000, 5px 0 0 #000, -5px 0 0 #000,
+                  inset -3px -3px 0px rgba(0,0,0,0.3);
+    }
+    .nes-btn {
+      border: 3px solid #000;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.4), 3px 3px 0px #000;
+      transition: all 0.08s ease;
+    }
+    .nes-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: inset 1px 1px 0px rgba(0,0,0,0.4);
+    }
+    .pixel-ground {
+      background: repeating-linear-gradient(
+        45deg,
+        #c84c0c,
+        #c84c0c 12px,
+        #a83604 12px,
+        #a83604 24px
+      );
+      border-top: 8px solid #00a800;
+      box-shadow: inset 0 8px 0 #00e000;
+    }
+
+    /* 聚焦放大模式：整張卡片完整無裁切、包含上方Stage標籤與四周黑框 */
+    .flow-node.stage-zoomed {
+      position: absolute !important;
+      top: 8% !important;
+      left: 27% !important;
+      width: 46% !important;
+      z-index: 50 !important;
+      transform-origin: center center !important;
+      transform: scale(1.58) !important;
+      box-shadow: 0 10px 0 #000, 0 -6px 0 #000, 8px 0 0 #000, -8px 0 0 #000, 0 30px 60px rgba(0,0,0,0.45) !important;
+      cursor: zoom-out !important;
+      overflow: visible !important;
+      animation: zoomSmooth 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+    }
+
+    @keyframes zoomSmooth {
+      0% { transform: scale(1); opacity: 0.85; }
+      100% { transform: scale(1.58); opacity: 1; }
+    }
+
+    /* Floating / Bouncing Mario animations */
+    @keyframes marioBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .animate-mario-bounce {
+      animation: marioBounce 0.4s infinite ease-in-out;
+    }
+    @keyframes coinSpin {
+      0% { transform: scaleX(1); }
+      50% { transform: scaleX(0.15); }
+      100% { transform: scaleX(1); }
+    }
+    .animate-coin {
+      animation: coinSpin 0.7s infinite linear;
+    }
+    @keyframes questionBlockGlow {
+      0%, 100% { filter: brightness(100%); }
+      50% { filter: brightness(125%); }
+    }
+    .animate-qblock {
+      animation: questionBlockGlow 1.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center">
+
+  <!-- 1600x900 核心舞台 -->
+  <div id="viewport-container">
+
+    <!-- Top Retro HUD Banner -->
+    <header class="w-full bg-[#1e1c18]/90 backdrop-blur border-b-4 border-black text-white px-8 py-3.5 z-50 shadow-lg">
+      <div class="w-full flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-11 h-11 bg-red-600 rounded border-2 border-white flex items-center justify-center font-pixel text-yellow-300 text-xl shadow">
+            M
+          </div>
+          <h1 class="font-pixel text-xl text-yellow-400 tracking-wider flex items-center gap-3">
+            CICC 升級流程 <span class="text-sm bg-red-600 px-2.5 py-0.5 rounded text-white font-mono">WORLD 8-D</span>
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-8 font-pixel text-sm">
+          <div class="flex flex-col items-center">
+            <span class="text-gray-400 text-xs">SCORE</span>
+            <span id="hud-score" class="text-white tracking-widest text-base">004200</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="inline-block w-3.5 h-5 bg-yellow-400 rounded-sm animate-coin border border-black"></span>
+            <span class="text-yellow-300 text-base">×</span>
+            <span id="hud-coins" class="text-white text-base">03</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-gray-400 text-xs">STAGE</span>
+            <span id="hud-stage-name" class="text-emerald-400 font-bold text-base">1/7</span>
+          </div>
+          
+          <div class="flex items-center gap-3 ml-3">
+            <button id="btn-sound" class="nes-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded text-xs font-pixel" title="切換音效">
+              <span id="sound-icon">🔊</span>
+            </button>
+            <button id="btn-fullscreen" class="nes-btn px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-pixel" title="切換全螢幕">
+              ⛶
+            </button>
+            <button id="btn-restart" class="nes-btn px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-pixel" title="重新開始">
+              RESET
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Stage -->
+    <main class="flex-1 w-full px-8 py-3.5 flex flex-col justify-between gap-3 overflow-hidden relative">
+      <!-- Action Controls Bar (已移除提示文字) -->
+      <div class="bg-blue-900/80 px-6 py-2.5 rounded-lg border-2 border-black flex items-center justify-between shadow">
+        <div class="flex items-center gap-3">
+          <span class="font-pixel text-sm text-yellow-300">模式:</span>
+          <button id="btn-mode-manual" class="nes-btn px-4 py-1 text-sm font-bold rounded bg-yellow-400 text-black border-2 border-black">手動闖關</button>
+          <button id="btn-mode-auto" class="nes-btn px-4 py-1 text-sm font-bold rounded bg-slate-700 text-slate-200 border-2 border-black hover:bg-slate-600">自動巡覽 ▶</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btn-prev-step" class="nes-btn px-4 py-1 text-sm font-pixel bg-slate-200 hover:bg-white text-black rounded" disabled>◀ 上一步</button>
+          <button id="btn-next-step" class="nes-btn px-5 py-1 text-sm font-pixel bg-green-500 hover:bg-green-400 text-white font-bold rounded shadow flex items-center gap-1.5">下一步 ▶</button>
+        </div>
+      </div>
+
+      <!-- Retro Interactive Stage Area -->
+      <div id="stage-arena" class="relative flex-1 bg-gradient-to-b from-[#5c94fc] via-[#85b5ff] to-[#a0c8ff] rounded-xl border-4 border-black overflow-hidden shadow-2xl flex flex-col justify-between">
+
+        <!-- Background Pixel Elements -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+          <div class="absolute top-4 left-14 opacity-90 animate-pulse">
+            <svg width="90" height="40" viewBox="0 0 80 36">
+              <path d="M20,30 H60 Q70,30 70,20 Q70,10 60,10 Q55,0 40,0 Q25,0 20,10 Q10,10 10,20 Q10,30 20,30 Z" fill="#ffffff"/>
+              <circle cx="28" cy="14" r="10" fill="#f0f7ff"/>
+              <circle cx="50" cy="14" r="12" fill="#f0f7ff"/>
+            </svg>
+          </div>
+          <div class="absolute top-10 right-32 opacity-80">
+            <svg width="110" height="46" viewBox="0 0 100 42">
+              <path d="M25,35 H75 Q88,35 88,23 Q88,11 75,11 Q70,0 50,0 Q30,0 25,11 Q12,11 12,23 Q12,35 25,35 Z" fill="#ffffff"/>
+            </svg>
+          </div>
+          <div class="absolute bottom-20 left-0 right-0 h-32 flex justify-around items-end opacity-75">
+            <div class="w-60 h-28 bg-emerald-600 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800"></div>
+            <div class="w-80 h-36 bg-emerald-500 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800 -mx-12"></div>
+            <div class="w-56 h-24 bg-emerald-600 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800"></div>
+          </div>
+        </div>
+
+        <!-- Interactive Flowchart Nodes Layer (Top Row: Nodes 0-3) -->
+        <div class="relative z-10 px-6 pt-5 grid grid-cols-4 gap-5 items-stretch">
+          
+          <!-- Node 0: 客戶客訴 -->
+          <div id="node-0" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black text-center relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 left-4 bg-red-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
+              START 01
+            </div>
+            <div>
+              <div class="my-1 flex items-center justify-center gap-2">
+                <span class="text-2xl">🚨</span>
+                <span class="font-pixel text-sm text-red-600 font-bold">ALERT</span>
+              </div>
+              <h3 class="font-extrabold text-2xl text-gray-950 mt-1 tracking-tight">客戶客訴</h3>
+            </div>
+            <p class="text-lg text-gray-800 font-bold mt-2 leading-relaxed bg-amber-50/80 p-2.5 rounded border-2 border-amber-300">
+              收到客戶異常通報，啟動事件追蹤流程。
+            </p>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2 transition-all"></div>
+          </div>
+
+          <!-- Node 1: <D1-D2> 問題識別與派案 -->
+          <div id="node-1" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 left-4 bg-amber-500 text-black font-pixel text-xs px-2.5 py-1 rounded shadow">
+              STAGE 02
+            </div>
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-pixel text-sm text-amber-800 font-bold">&lt;D1-D2&gt;</span>
+                <span class="text-2xl">📋</span>
+              </div>
+              <h3 class="font-extrabold text-xl text-gray-950 mt-1 tracking-tight">問題識別與派案</h3>
+            </div>
+            
+            <div class="mt-2 space-y-2">
+              <div id="branch-tag-hw" class="p-2 rounded bg-amber-100 border-2 border-amber-400 flex items-center justify-between shadow-sm">
+                <span class="font-extrabold text-amber-950 text-sm">🔥 HW / 高風險 / MBU</span>
+                <span class="text-xs font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded">➔ 進入評估</span>
+              </div>
+              <div id="branch-tag-sw" class="p-2 rounded bg-gray-100 border-2 border-gray-300 flex items-center justify-between text-gray-700">
+                <span class="font-bold text-sm text-gray-800">🐢 SW / SBU / NPF</span>
+                <span class="text-xs font-semibold text-gray-600">常規處置</span>
+              </div>
+            </div>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+
+          <!-- Node 2: <D3> 資訊彙整與風險評估 -->
+          <div id="node-2" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 left-4 bg-blue-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
+              STAGE 03
+            </div>
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-pixel text-sm text-blue-800 font-bold">&lt;D3&gt;</span>
+                <div class="w-7 h-7 bg-yellow-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-black font-bold animate-qblock">?</div>
+              </div>
+              <h3 class="font-extrabold text-xl text-gray-950 mt-1 tracking-tight">資訊彙整與風險評估</h3>
+              <div class="mt-1.5 bg-blue-50 border-2 border-blue-200 rounded px-2.5 py-0.5 text-sm text-blue-900">
+                <strong>Coordinator:</strong> <span class="font-extrabold text-blue-800">QMD CQRM</span>
+              </div>
+            </div>
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-blue-50/80 p-2 rounded border-2 border-blue-200">
+              跨組收集資訊、衝擊範圍與重大性評級。
+            </p>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+
+          <!-- Node 3: 升級決策門檻 (Decision) -->
+          <div id="node-3" class="flow-node nes-box bg-yellow-50 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 left-4 bg-purple-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
+              DECISION 04
+            </div>
+            <div>
+              <div class="text-center">
+                <div class="inline-block bg-yellow-400 border-2 border-black px-2.5 py-0.5 rounded text-xs font-black uppercase text-amber-950">
+                  Gate Check
+                </div>
+                <h3 class="font-extrabold text-xl text-gray-950 mt-1 tracking-tight">符合 CICC 升級門檻？</h3>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mt-2 text-center">
+              <div class="bg-red-100 border-2 border-red-400 rounded py-1.5 text-red-900 font-extrabold flex flex-col items-center">
+                <span class="text-sm">YES 🌟</span>
+                <span class="text-xs text-red-700 font-bold">立案升級</span>
+              </div>
+              <div class="bg-slate-100 border-2 border-slate-300 rounded py-1.5 text-slate-800 font-extrabold flex flex-col items-center">
+                <span class="text-sm">NO 🛡️</span>
+                <span class="text-xs text-slate-600 font-bold">常規 8D</span>
+              </div>
+            </div>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+        </div>
+
+        <!-- Escalation Milestones Bar (Bottom Row Nodes: 4-6) -->
+        <div class="relative z-10 px-6 pb-3 grid grid-cols-3 gap-5 items-stretch">
+          <!-- Node 4: CICC 案件正式立案 -->
+          <div id="node-4" class="flow-node nes-box bg-red-600 text-white rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 right-4 bg-yellow-400 text-black font-pixel text-xs px-2.5 py-1 rounded shadow flex items-center gap-1.5">
+              <span>★</span> SUPER STAR
+            </div>
+            <div>
+              <div class="flex items-center gap-3">
+                <span class="text-3xl animate-spin" style="animation-duration: 4s;">⭐</span>
+                <h3 class="font-extrabold text-xl tracking-wide text-yellow-300">★ CICC 案件正式立案</h3>
+              </div>
+            </div>
+            <p class="text-base text-red-50 font-bold mt-2 leading-relaxed bg-red-700/80 p-2 rounded border-2 border-red-400">
+              成立專案應變指揮小組，全面提速資源響應。
+            </p>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+
+          <!-- Node 5: 發送 CICC 升級公告郵件 -->
+          <div id="node-5" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-extrabold text-xl text-gray-950 flex items-center gap-2">
+                  <span>✉️</span> 發送 CICC 升級公告
+                </h3>
+                <span class="bg-blue-100 text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded border-2 border-blue-300">MAIL BLAST</span>
+              </div>
+            </div>
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2 rounded border-2 border-slate-300">
+              同步對齊利害關係人，透明化事件狀態與應變窗口。
+            </p>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+
+          <!-- Node 6: 跨部門支援與終點通關 (Goal Castle) -->
+          <div id="node-6" class="flow-node nes-box bg-emerald-700 text-white rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
+            <div class="absolute -top-3.5 right-4 bg-yellow-300 text-emerald-950 font-pixel text-xs px-2.5 py-1 rounded">
+              FLAG POLE 🚩
+            </div>
+            <div>
+              <h3 class="font-extrabold text-xl text-yellow-300 flex items-center gap-2">
+                <span>🏰</span> BEC / 主管層資源跨部門支援
+              </h3>
+            </div>
+            <p class="text-base text-emerald-50 font-bold mt-2 leading-relaxed bg-emerald-800/80 p-2 rounded border-2 border-emerald-400">
+              高層決策介入、跨組織協同除錯、保障客戶信任！
+            </p>
+            <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
+          </div>
+        </div>
+
+        <!-- Interactive Animated Stage Floor (Mario Walkway) -->
+        <div class="relative w-full h-28 pixel-ground flex items-end justify-between px-10 pb-2.5 overflow-hidden z-20">
+          
+          <!-- Left Green Warp Pipe -->
+          <div id="pipe-regular" class="relative z-10 flex flex-col items-center cursor-pointer group" title="常規處理程序 (SW/SBU/NPF 或 無需升級)">
+            <div class="text-xs font-pixel text-yellow-300 bg-black/80 px-2 py-0.5 rounded mb-1 hidden group-hover:block transition">
+              常規處理水管
+            </div>
+            <div class="w-16 h-6 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-700 border-2 border-black rounded-t shadow"></div>
+            <div class="w-12 h-12 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-800 border-x-2 border-black flex items-center justify-center">
+              <span class="text-xs font-pixel text-white/80">8D</span>
+            </div>
+          </div>
+
+          <!-- Mario Active Pixel Sprite -->
+          <div id="mario-character" class="absolute z-30 transition-all duration-500 ease-out flex flex-col items-center" style="bottom: 20px; left: 6%;">
+            <div id="mario-speech" class="opacity-0 transition-opacity duration-300 bg-white border-2 border-black rounded px-2.5 py-1 text-sm font-bold text-slate-900 shadow-md mb-1 whitespace-nowrap">
+              Let's-a Go!
+            </div>
+
+            <div id="mario-sprite-box" class="w-11 h-14 relative drop-shadow-md">
+              <svg viewBox="0 0 16 20" class="w-full h-full">
+                <rect x="3" y="1" width="7" height="2" fill="#e52521"/>
+                <rect x="2" y="3" width="11" height="2" fill="#e52521"/>
+                <rect x="2" y="5" width="3" height="3" fill="#6c3b16"/>
+                <rect x="5" y="5" width="2" height="2" fill="#ffd099"/>
+                <rect x="7" y="5" width="1" height="2" fill="#000000"/>
+                <rect x="8" y="5" width="4" height="2" fill="#ffd099"/>
+                <rect x="5" y="7" width="6" height="2" fill="#000000"/>
+                <rect x="4" y="9" width="8" height="2" fill="#e52521"/>
+                <rect x="2" y="10" width="3" height="4" fill="#e52521"/>
+                <rect x="11" y="10" width="3" height="4" fill="#e52521"/>
+                <rect x="4" y="11" width="8" height="5" fill="#0026e6"/>
+                <rect x="5" y="12" width="1" height="1" fill="#ffe600"/>
+                <rect x="10" y="12" width="1" height="1" fill="#ffe600"/>
+                <rect x="3" y="16" width="4" height="2" fill="#6c3b16"/>
+                <rect x="9" y="16" width="4" height="2" fill="#6c3b16"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Question Blocks Row in Middle Floor -->
+          <div class="flex items-center gap-4 z-10 mb-5">
+            <div class="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-950 font-bold shadow animate-qblock">
+              ?
+            </div>
+            <div class="w-9 h-9 bg-[#b84418] border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-200 shadow">
+              #
+            </div>
+            <div class="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-950 font-bold shadow animate-qblock">
+              ?
+            </div>
+          </div>
+
+          <!-- Right Side: Flag Pole & Finish Goal -->
+          <div id="flagpole-container" class="relative z-10 flex flex-col items-center">
+            <div class="relative w-12 h-24 flex justify-center">
+              <div class="w-2 h-full bg-slate-300 border-x-2 border-black"></div>
+              <div class="absolute -top-3 w-5 h-5 bg-yellow-400 rounded-full border-2 border-black shadow"></div>
+              <div id="finish-flag" class="absolute top-1 left-2 bg-red-600 text-yellow-300 border border-black px-2 py-0.5 font-pixel text-[9px] font-bold rounded-r transition-all duration-700 shadow">
+                CICC!
+              </div>
+              <div class="absolute -bottom-1 -right-6 text-xl animate-bounce" title="跨組織支援團隊">
+                🍄
+              </div>
+            </div>
+            <div class="w-14 h-4 bg-[#963810] border-2 border-black rounded-sm shadow"></div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Retro Footer -->
+    <footer class="text-center py-2 text-sm text-slate-800 font-mono font-bold">
+      CICC Interactive Simulation Engine • Retro Mario 8-Bit Architecture
+    </footer>
+
+  </div>
+
+  <script>
+    const viewportContainer = document.getElementById('viewport-container');
+    const TARGET_WIDTH = 1600;
+    const TARGET_HEIGHT = 900;
+
+    function applyScale() {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const scale = Math.min(windowWidth / TARGET_WIDTH, windowHeight / TARGET_HEIGHT);
+      viewportContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+
+    window.addEventListener('resize', applyScale);
+    window.addEventListener('orientationchange', applyScale);
+
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.warn(err));
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    document.addEventListener('fullscreenchange', applyScale);
+
+    class RetroAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return !this.muted;
+      }
+
+      playJump() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      playCoin() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(987.77, now);
+          osc.frequency.setValueAtTime(1318.51, now + 0.08);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.36);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      playPowerup() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const notes = [330, 392, 659, 523, 587, 784];
+          notes.forEach((freq, idx) => {
+            const now = this.ctx.currentTime + idx * 0.07;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
+          });
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      playPipe() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.31);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      playFanfare() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const melody = [
+            { f: 523.25, d: 0.12 },
+            { f: 659.25, d: 0.12 },
+            { f: 783.99, d: 0.12 },
+            { f: 1046.50, d: 0.25 },
+            { f: 880.00, d: 0.15 },
+            { f: 1046.50, d: 0.4 }
+          ];
+          let offset = 0;
+          melody.forEach(n => {
+            const now = this.ctx.currentTime + offset;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(n.f, now);
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + n.d);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + n.d + 0.02);
+            offset += n.d;
+          });
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    const audio = new RetroAudioEngine();
+
+    const FLOW_NODES = {
+      0: {
+        id: 'node-0',
+        title: '客戶客訴',
+        marioX: '6%',
+        speech: '🚨 客戶緊急回報！',
+        score: 1000
+      },
+      1: {
+        id: 'node-1',
+        title: '<D1-D2> 問題識別與派案',
+        marioX: '28%',
+        speech: '🤔 進行問題分類...',
+        score: 2500
+      },
+      2: {
+        id: 'node-2',
+        title: '<D3> 資訊彙整與風險評估',
+        marioX: '52%',
+        speech: '🍄 吃顆蘑菇彙整評估！',
+        score: 5000
+      },
+      3: {
+        id: 'node-3',
+        title: '符合 CICC 升級門檻？',
+        marioX: '74%',
+        speech: '❓ 是否觸發升級門檻？',
+        score: 7500
+      },
+      4: {
+        id: 'node-4',
+        title: '★ CICC 案件正式立案',
+        marioX: '35%',
+        speech: '⭐ 無敵星星！CICC正式立案！',
+        score: 12000
+      },
+      5: {
+        id: 'node-5',
+        title: '發送 CICC 升級公告郵件',
+        marioX: '65%',
+        speech: '🕊️ 發送全體公告信件！',
+        score: 16000
+      },
+      6: {
+        id: 'node-6',
+        title: 'BEC / 主管層資源對齊與跨部門支援',
+        marioX: '90%',
+        speech: '🏆 STAGE CLEAR! 跨部門全員到位！',
+        score: 25000
+      }
+    };
+
+    const MAIN_PATH = [0, 1, 2, 3, 4, 5, 6];
+
+    let currentStepIndex = 0;
+    let isAutoPlaying = false;
+    let autoTimer = null;
+    let userCoins = 3;
+    let currentZoomedNode = null;
+
+    const marioEl = document.getElementById('mario-character');
+    const speechEl = document.getElementById('mario-speech');
+    const hudScore = document.getElementById('hud-score');
+    const hudCoins = document.getElementById('hud-coins');
+    const hudStage = document.getElementById('hud-stage-name');
+    const btnNext = document.getElementById('btn-next-step');
+    const btnPrev = document.getElementById('btn-prev-step');
+    const btnRestart = document.getElementById('btn-restart');
+    const btnSound = document.getElementById('btn-sound');
+    const soundIcon = document.getElementById('sound-icon');
+    const btnManual = document.getElementById('btn-mode-manual');
+    const btnAuto = document.getElementById('btn-mode-auto');
+    const finishFlag = document.getElementById('finish-flag');
+
+    function toggleZoomNode(nodeEl) {
+      if (currentZoomedNode === nodeEl) {
+        closeZoom();
+      } else {
+        if (currentZoomedNode) {
+          currentZoomedNode.classList.remove('stage-zoomed');
+        }
+        currentZoomedNode = nodeEl;
+        currentZoomedNode.classList.add('stage-zoomed');
+        audio.playCoin();
+      }
+    }
+
+    function closeZoom() {
+      if (currentZoomedNode) {
+        currentZoomedNode.classList.remove('stage-zoomed');
+        currentZoomedNode = null;
+      }
+    }
+
+    function updateUIForStep(stepIdx, triggerAudio = true) {
+      const nodeKey = MAIN_PATH[stepIdx];
+      const nodeData = FLOW_NODES[nodeKey];
+
+      document.querySelectorAll('.flow-node').forEach(card => {
+        card.classList.remove('ring-4', 'ring-yellow-400', 'bg-yellow-100', 'scale-105');
+      });
+
+      const activeCard = document.getElementById(nodeData.id);
+      if (activeCard) {
+        activeCard.classList.add('ring-4', 'ring-yellow-400', 'scale-105');
+      }
+
+      marioEl.style.left = nodeData.marioX;
+      marioEl.classList.add('animate-mario-bounce');
+      setTimeout(() => marioEl.classList.remove('animate-mario-bounce'), 500);
+
+      speechEl.innerText = nodeData.speech;
+      speechEl.classList.remove('opacity-0');
+      clearTimeout(marioEl._speechTimeout);
+      marioEl._speechTimeout = setTimeout(() => speechEl.classList.add('opacity-0'), 2500);
+
+      if (triggerAudio) {
+        if (nodeKey === 0 || nodeKey === 1) audio.playJump();
+        else if (nodeKey === 2) audio.playCoin();
+        else if (nodeKey === 4) audio.playPowerup();
+        else if (nodeKey === 6) audio.playFanfare();
+        else audio.playJump();
+      }
+
+      userCoins++;
+      hudCoins.innerText = String(userCoins).padStart(2, '0');
+      hudScore.innerText = String(nodeData.score).padStart(6, '0');
+      hudStage.innerText = `${stepIdx + 1}/${MAIN_PATH.length}`;
+
+      if (nodeKey === 6) {
+        finishFlag.style.top = '62px';
+      } else {
+        finishFlag.style.top = '4px';
+      }
+
+      btnPrev.disabled = stepIdx === 0;
+    }
+
+    function goToStep(idx) {
+      if (idx >= 0 && idx < MAIN_PATH.length) {
+        currentStepIndex = idx;
+        updateUIForStep(currentStepIndex);
+      }
+    }
+
+    function restartGame() {
+      closeZoom();
+      stopAutoPlay();
+      currentStepIndex = 0;
+      userCoins = 3;
+      finishFlag.style.top = '4px';
+      updateUIForStep(0);
+      audio.playJump();
+    }
+
+    function startAutoPlay() {
+      if (isAutoPlaying) return;
+      closeZoom();
+      isAutoPlaying = true;
+      btnAuto.classList.add('bg-green-600', 'text-white');
+      btnAuto.classList.remove('bg-slate-700', 'text-slate-200');
+      btnManual.classList.remove('bg-yellow-400', 'text-black');
+      btnManual.classList.add('bg-slate-700', 'text-slate-200');
+
+      autoTimer = setInterval(() => {
+        if (currentStepIndex < MAIN_PATH.length - 1) {
+          goToStep(currentStepIndex + 1);
+        } else {
+          stopAutoPlay();
+        }
+      }, 3500);
+    }
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      clearInterval(autoTimer);
+      btnAuto.classList.remove('bg-green-600', 'text-white');
+      btnAuto.classList.add('bg-slate-700', 'text-slate-200');
+      btnManual.classList.add('bg-yellow-400', 'text-black');
+      btnManual.classList.remove('bg-slate-700', 'text-slate-200');
+    }
+
+    btnNext.addEventListener('click', () => {
+      stopAutoPlay();
+      closeZoom();
+      if (currentStepIndex < MAIN_PATH.length - 1) {
+        goToStep(currentStepIndex + 1);
+      }
+    });
+
+    btnPrev.addEventListener('click', () => {
+      stopAutoPlay();
+      closeZoom();
+      if (currentStepIndex > 0) {
+        goToStep(currentStepIndex - 1);
+      }
+    });
+
+    btnRestart.addEventListener('click', restartGame);
+
+    btnAuto.addEventListener('click', () => {
+      if (isAutoPlaying) stopAutoPlay();
+      else startAutoPlay();
+    });
+
+    btnManual.addEventListener('click', () => {
+      stopAutoPlay();
+    });
+
+    btnSound.addEventListener('click', () => {
+      const isAudible = audio.toggleMute();
+      soundIcon.innerText = isAudible ? '🔊' : '🔇';
+    });
+
+    document.getElementById('pipe-regular').addEventListener('click', () => {
+      audio.playPipe();
+      marioEl.style.left = '4%';
+      speechEl.innerText = '進入常規水管... 管道分流！';
+      speechEl.classList.remove('opacity-0');
+    });
+
+    Object.keys(FLOW_NODES).forEach(key => {
+      const nodeObj = FLOW_NODES[key];
+      const el = document.getElementById(nodeObj.id);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          stopAutoPlay();
+          const targetIdx = MAIN_PATH.indexOf(Number(key));
+          if (targetIdx !== -1) {
+            goToStep(targetIdx);
+          }
+          toggleZoomNode(el);
+        });
+      }
+    });
+
+    document.getElementById('stage-arena').addEventListener('click', (e) => {
+      if (!e.target.closest('.flow-node')) {
+        closeZoom();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeZoom();
+      } else if (e.key === 'ArrowRight' || e.key === ' ') {
+        stopAutoPlay();
+        closeZoom();
+        if (currentStepIndex < MAIN_PATH.length - 1) goToStep(currentStepIndex + 1);
+      } else if (e.key === 'ArrowLeft') {
+        stopAutoPlay();
+        closeZoom();
+        if (currentStepIndex > 0) goToStep(currentStepIndex - 1);
+      }
+    });
+
+    window.onload = function() {
+      applyScale();
+      updateUIForStep(0, false);
+    };
+  </script>
+</body>
+</html>

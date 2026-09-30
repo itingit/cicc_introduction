@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CICC 四大面向判斷評分 - 瑪利歐冒險篇 (Case: CICC-26003)</title>
+  <!-- Google Fonts: Retro 8-bit & Pixel Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    :root {
+      --sky-blue: #5c94fc;
+      --ground-brown: #c84c0c;
+      --brick-dark: #8b2500;
+      --pipe-green: #00a800;
+      --pipe-dark: #005800;
+      --mario-red: #fc3800;
+      --coin-yellow: #fcbc00;
+      --hud-white: #fcfcfc;
+      --card-bg: #1e1e2d;
+      --card-border: #36364d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0d0d14;
+      font-family: 'DotGothic16', 'Press Start 2P', monospace;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    .arcade-wrapper {
+      width: 100%;
+      max-width: 1260px;
+      background: #191926;
+      border: 6px solid #323247;
+      border-radius: 14px;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.85), inset 0 0 20px rgba(0,0,0,0.6);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top HUD Bar - Case title in place of Mario Standby */
+    .game-hud {
+      background: #000;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #323247;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: var(--hud-white);
+      letter-spacing: 0.5px;
+      flex-wrap: wrap;
+      gap: 10px;
+      z-index: 55;
+    }
+
+    .hud-case-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 320px;
+    }
+    .hud-case-badge {
+      background: #ff3800;
+      color: #fff;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #fff;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .hud-case-text {
+      font-family: 'DotGothic16', monospace;
+      font-size: 17px;
+      font-weight: bold;
+      color: #fcbc00;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px #000;
+      line-height: 1.2;
+    }
+
+    .hud-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-pixel {
+      background: #fc3800;
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      cursor: pointer;
+      box-shadow: 0 3px #8b2500;
+      transition: all 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-pixel:hover {
+      background: #ff5522;
+      transform: translateY(-1px);
+    }
+    .btn-pixel:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px #8b2500;
+    }
+    .btn-green {
+      background: var(--pipe-green);
+      box-shadow: 0 3px var(--pipe-dark);
+    }
+    .btn-yellow {
+      background: #b58000;
+      box-shadow: 0 3px #614400;
+    }
+
+    /* Master Stage Header Dashboard: Criteria and Total Score (from cicc_score.html) */
+    .stage-master-board {
+      background: #000;
+      border-bottom: 3px solid #333;
+      padding: 6px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
+    }
+
+    .hud-criteria-box {
+      background: linear-gradient(180deg, #181829 0%, #0c0c16 100%);
+      border: 2px solid #ffbc00;
+      border-radius: 10px;
+      padding: 6px 14px;
+      display: flex;
+      gap: 14px;
+      font-family: 'DotGothic16', monospace;
+      font-size: 18px;
+      align-items: center;
+      box-shadow: 0 0 12px rgba(252, 188, 0, 0.25);
+      letter-spacing: 0.5px;
+    }
+    .crit-label-tag {
+      color: #ffe600;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      background: #000;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 2px solid #ffe600;
+    }
+    .crit-item {
+      padding: 4px 10px;
+      border-radius: 5px;
+      color: #888899;
+      font-weight: bold;
+      border: 2px solid transparent;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.4, 1);
+      white-space: nowrap;
+    }
+    .crit-item.active {
+      transform: scale(1.06);
+    }
+    #crit-gte12.active {
+      color: #ffffff;
+      background: #c01919;
+      border-color: #ff5555;
+      box-shadow: 0 0 14px rgba(255, 60, 60, 0.95);
+      animation: critAlertGlow 0.9s infinite alternate;
+    }
+    #crit-8to11.active {
+      color: #000000;
+      background: #ffcc00;
+      border-color: #ffffff;
+      box-shadow: 0 0 14px rgba(255, 204, 0, 0.95);
+      font-weight: 900;
+    }
+    #crit-lt8.active {
+      color: #ffffff;
+      background: #14803c;
+      border-color: #38ef7d;
+      box-shadow: 0 0 14px rgba(56, 239, 125, 0.95);
+    }
+    @keyframes critAlertGlow {
+      0% { transform: scale(1.03); filter: brightness(1); }
+      100% { transform: scale(1.08); filter: brightness(1.25); }
+    }
+
+    .master-total-pill {
+      padding: 6px 18px;
+      border-radius: 10px;
+      border: 3px solid #000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      min-width: 150px;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .master-total-pill .total-title {
+      font-family: 'DotGothic16', monospace;
+      font-size: 19px;
+      font-weight: bold;
+      color: #fcbc00;
+    }
+    .master-total-pill .total-score-val {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 24px;
+      color: #fff;
+      text-shadow: 2px 2px #000;
+      line-height: 1;
+    }
+    .master-total-pill .total-unit {
+      font-family: 'DotGothic16', monospace;
+      font-size: 19px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .master-total-pill.escalate {
+      background: #8b1313;
+      border-color: #ff4747;
+      box-shadow: 0 0 14px rgba(255, 71, 71, 0.85);
+    }
+    .master-total-pill.director {
+      background: #73540a;
+      border-color: #f1c40f;
+    }
+    .master-total-pill.normal {
+      background: #0f5c27;
+      border-color: #2ecc71;
+    }
+
+    .btn-mission-complete {
+      display: none;
+      padding: 6px 12px;
+      background: linear-gradient(180deg, #ff4d4d, #b30000);
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 6px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #590000;
+      animation: completePulse 1s infinite alternate;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+    .btn-mission-complete.show {
+      display: inline-block;
+    }
+    @keyframes completePulse {
+      0% { box-shadow: 0 0 4px #ffcc00; }
+      100% { box-shadow: 0 0 16px #ff3300; }
+    }
+
+    /* Compact Stage Viewport to ensure Card 1 fits on 1080p full screen */
+    .stage-viewport {
+      width: 100%;
+      height: 240px;
+      background: var(--sky-blue);
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid #000;
+    }
+
+    .cloud {
+      position: absolute;
+      background: #ffffff;
+      border-radius: 20px;
+      opacity: 0.95;
+      pointer-events: none;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .cloud-1 { width: 70px; height: 20px; top: 15px; left: 30px; }
+    .cloud-1::before { width: 26px; height: 26px; top: -10px; left: 12px; }
+    .cloud-1::after { width: 34px; height: 34px; top: -14px; left: 28px; }
+
+    .cloud-2 { width: 90px; height: 22px; top: 25px; right: 110px; }
+    .cloud-2::before { width: 30px; height: 30px; top: -12px; left: 16px; }
+    .cloud-2::after { width: 40px; height: 40px; top: -16px; left: 36px; }
+
+    .hill {
+      position: absolute;
+      bottom: 38px;
+      background: #00a800;
+      border: 3px solid #004800;
+      pointer-events: none;
+    }
+    .hill-1 { left: 15px; width: 90px; height: 45px; border-radius: 45px 45px 0 0; }
+    .hill-2 { right: 80px; width: 120px; height: 55px; border-radius: 60px 60px 0 0; }
+
+    .ground-floor {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 38px;
+      background: repeating-linear-gradient(
+        45deg,
+        var(--ground-brown),
+        var(--ground-brown) 12px,
+        var(--brick-dark) 12px,
+        var(--brick-dark) 24px
+      );
+      border-top: 4px solid #80d010;
+      box-shadow: inset 0 4px 0 #008000;
+      z-index: 10;
+    }
+
+    .dimension-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 75px;
+      height: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      padding-bottom: 38px;
+      z-index: 12;
+    }
+
+    .station-zone {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 200px;
+      max-width: 24%;
+    }
+
+    .station-header {
+      background: rgba(0, 0, 0, 0.92);
+      border: 2px solid #ffffff;
+      border-radius: 8px;
+      padding: 4px 8px;
+      text-align: center;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      z-index: 15;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.15s ease, border-color 0.2s;
+    }
+    .station-header:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: #fcbc00;
+    }
+    .station-icon-wrap {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1px;
+    }
+    .station-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: #fcbc00;
+      text-shadow: 1px 1px #000;
+      letter-spacing: 0.5px;
+    }
+    .station-sub {
+      font-size: 15px;
+      font-weight: bold;
+      color: #ffffff;
+      white-space: nowrap;
+      line-height: 1.15;
+    }
+
+    .blocks-tier {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .mario-block {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #000;
+      box-shadow: inset 2px 2px 0 rgba(255,255,255,0.6), inset -2px -2px 0 rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.12s ease, filter 0.15s;
+    }
+    .mario-block:hover {
+      transform: translateY(-2px) scale(1.08);
+      filter: brightness(1.2);
+    }
+    .mario-block.active {
+      border-color: #ffffff;
+      box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #000, 0 0 12px #fcbc00;
+      transform: scale(1.12);
+    }
+    .mario-block.bumped {
+      animation: blockBump 0.24s ease;
+    }
+    @keyframes blockBump {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+      100% { transform: translateY(0); }
+    }
+
+    .block-level-badge {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      font-weight: bold;
+      color: #000;
+    }
+    .block-0 { background: #3ad383; }
+    .block-0.active { background: #2ecc71; }
+    .block-3 { background: #f39c12; }
+    .block-3.active { background: #f1c40f; }
+    .block-5 { background: #e74c3c; }
+    .block-5.active { background: #ff2a2a; }
+
+    .warp-pipe {
+      width: 52px;
+      height: 36px;
+      background: linear-gradient(90deg, #1ab01a 0%, #30df30 25%, #0e780e 85%);
+      border: 3px solid #000;
+      border-bottom: none;
+      position: relative;
+    }
+    .pipe-top {
+      position: absolute;
+      top: -11px;
+      left: -5px;
+      width: 56px;
+      height: 12px;
+      background: linear-gradient(90deg, #1ab01a 0%, #3bf03b 30%, #0e780e 90%);
+      border: 3px solid #000;
+      border-radius: 2px;
+    }
+
+    /* Castle & Flag Finish Line */
+    .castle-flag-area {
+      position: absolute;
+      right: 10px;
+      bottom: 38px;
+      display: flex;
+      align-items: flex-end;
+      z-index: 11;
+    }
+    .flagpole {
+      width: 5px;
+      height: 95px;
+      background: #e8e8e8;
+      border: 1px solid #000;
+      position: relative;
+    }
+    .flagpole-ball {
+      position: absolute;
+      top: -8px;
+      left: -4px;
+      width: 12px;
+      height: 12px;
+      background: #fcbc00;
+      border: 2px solid #000;
+      border-radius: 50%;
+    }
+    .cicc-flag {
+      position: absolute;
+      top: 60px;
+      left: 5px;
+      background: #fc3800;
+      color: #fff;
+      padding: 1px 4px;
+      font-size: 8px;
+      font-family: 'Press Start 2P', monospace;
+      border: 1px solid #000;
+      border-radius: 2px;
+      transition: top 0.5s ease;
+    }
+
+    #mario-character {
+      position: absolute;
+      bottom: 38px;
+      left: 20px;
+      width: 32px;
+      height: 38px;
+      z-index: 30;
+      transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), bottom 0.2s ease;
+      pointer-events: none;
+    }
+    .mario-sprite {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5));
+    }
+
+    .floating-coin-effect {
+      position: absolute;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      color: #fce803;
+      text-shadow: 2px 2px #000;
+      pointer-events: none;
+      z-index: 45;
+      animation: floatScoreUp 0.75s forwards ease-out;
+    }
+    @keyframes floatScoreUp {
+      0% { opacity: 1; transform: translateY(0); }
+      50% { transform: translateY(-24px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-46px); }
+    }
+
+    /* Lower Detailed Dimensions Section */
+    .matrix-section {
+      background: #141420;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .dim-card {
+      background: var(--card-bg);
+      border: 3px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .dim-card.active-focus {
+      border-color: var(--coin-yellow);
+      background: #252538;
+      box-shadow: 0 0 14px rgba(252, 188, 0, 0.22);
+    }
+
+    .dim-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dim-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dim-badge {
+      background: #000;
+      padding: 3px 8px;
+      border: 2px solid #5c94fc;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #5c94fc;
+    }
+    .dim-label {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+    .dim-head-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dim-selected-score {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 2px solid #000;
+    }
+
+    /* Incident Context Box */
+    .case-incident-box {
+      background: #151522;
+      border-left: 5px solid #fcbc00;
+      border-radius: 4px;
+      padding: 8px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .case-incident-label {
+      font-size: 13px;
+      color: #fcbc00;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .case-incident-desc {
+      font-size: 18px;
+      color: #f4f6fa;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    /* Options Grid (from cicc_score.html) */
+    .options-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .option-btn {
+      background: #12121c;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+      transition: all 0.15s ease;
+      min-height: 72px;
+    }
+    .option-btn:hover {
+      background: #222234;
+      border-color: #888;
+      transform: translateY(-2px);
+    }
+    .option-btn.selected {
+      border-width: 2px;
+      box-shadow: 0 0 12px rgba(255,255,255,0.22);
+    }
+    .option-btn.score-0.selected {
+      border-color: #2ecc71;
+      background: rgba(46, 204, 113, 0.22);
+    }
+    .option-btn.score-3.selected {
+      border-color: #f1c40f;
+      background: rgba(241, 196, 15, 0.22);
+    }
+    .option-btn.score-5.selected {
+      border-color: #e74c3c;
+      background: rgba(231, 76, 60, 0.22);
+    }
+
+    .opt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .opt-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-0 { background: #2ecc71; }
+    .dot-3 { background: #f1c40f; }
+    .dot-5 { background: #e74c3c; }
+
+    .opt-desc {
+      font-size: 16px;
+      color: #e4e7f0;
+      line-height: 1.45;
+      letter-spacing: 0.3px;
+    }
+
+    .answer-tag {
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: bold;
+    }
+    .answer-tag.tag-correct { background: #145a32; color: #82e0aa; }
+    .answer-tag.tag-wrong { background: #641e16; color: #f1948a; }
+
+    .answer-reveal-box {
+      margin-top: 4px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      display: none;
+      animation: fadeInReveal 0.25s ease forwards;
+    }
+    .answer-reveal-box.show { display: block; }
+    .answer-reveal-box.is-correct {
+      background: rgba(46, 204, 113, 0.16);
+      border: 2px solid #2ecc71;
+    }
+    .answer-reveal-box.is-wrong {
+      background: rgba(231, 76, 60, 0.16);
+      border: 2px solid #e74c3c;
+    }
+    .reveal-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .reveal-badge {
+      font-size: 16px;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .reveal-badge.badge-correct { color: #5ef39d; }
+    .reveal-badge.badge-wrong { color: #ff8585; }
+    .reveal-official-pts {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      background: #000;
+      color: #fcbc00;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #777;
+    }
+    .reveal-reason-text {
+      font-size: 17px;
+      color: #f1f4fc;
+      line-height: 1.45;
+    }
+
+    @keyframes fadeInReveal {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fullscreen-video-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .fullscreen-video-container.show {
+      display: flex;
+    }
+    .fullscreen-video-container video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      background: #000;
+    }
+    .video-exit-tip {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      z-index: 100000;
+      background: rgba(0, 0, 0, 0.75);
+      border: 2px solid #fcbc00;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .options-row { grid-template-columns: 1fr; }
+      .hud-criteria-box { font-size: 15px; }
+      .station-sub { font-size: 13px; }
+      .case-incident-desc { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="arcade-wrapper">
+    <!-- Top Retro HUD: Case Title replaces Mario Standby -->
+    <div class="game-hud">
+      <div class="hud-case-group">
+        <span class="hud-case-badge">CASE</span>
+        <span class="hud-case-text">CICC-26003：VM-1220-T RTC battery low voltage</span>
+      </div>
+      <div class="hud-buttons">
+        <button class="btn-pixel btn-green" id="btn-demo-walk">
+          <i class="fa-solid fa-play"></i> DEMO 演練
+        </button>
+        <button class="btn-pixel btn-yellow" id="btn-reset">
+          <i class="fa-solid fa-rotate-right"></i> 重置
+        </button>
+        <button class="btn-pixel" id="btn-sound-toggle">
+          <i class="fa-solid fa-volume-high" id="sound-icon"></i> 音效
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Stage Header Dashboard: Criteria and Total Score (from cicc_score.html) -->
+    <div class="stage-master-board">
+      <div class="hud-criteria-box">
+        <span class="crit-label-tag">CRITERIA 標準</span>
+        <div class="crit-item" id="crit-gte12">&gt;= 12: 建議升級</div>
+        <div class="crit-item" id="crit-8to11">8 - 11: 由QMD主管裁決</div>
+        <div class="crit-item active" id="crit-lt8">&lt; 8: 不須升級</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button id="btn-mission-complete" class="btn-mission-complete" onclick="startFullscreenEasterEgg()">
+          ★ MISSION COMPLETE ★ 點擊播放結尾影片
+        </button>
+
+        <div class="master-total-pill normal" id="decision-box">
+          <span class="total-title">總分：</span>
+          <span class="total-score-val" id="calc-total">0</span>
+          <span class="total-unit">分</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact Mario Stage Viewport -->
+    <div class="stage-viewport" id="stage-viewport">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="hill hill-1"></div>
+      <div class="hill hill-2"></div>
+
+      <!-- 4 Dimensions Stations Track -->
+      <div class="dimension-track">
+        <!-- Station 1: Impact -->
+        <div class="station-zone" id="zone-impact">
+          <div class="station-header" onclick="scrollToCard('impact')" title="點擊前往面向 1：Impact">
+            <div class="station-icon-wrap">
+              <svg style="width:28px; height:28px; filter: drop-shadow(0 2px 0 #000);" viewBox="0 0 32 32">
+                <polygon points="16,1 21,11 31,12 23,20 26,31 16,25 6,31 9,20 1,12 11,11" fill="#fcbc00" stroke="#000" stroke-width="2"/>
+                <circle cx="12" cy="14" r="1.5" fill="#000"/>
+                <circle cx="20" cy="14" r="1.5" fill="#000"/>
+                <path d="M19,16 Q20,20 22,22 Q21,24 19,23 Q18,21 19,16" fill="#38c0fc" stroke="#004080" stroke-width="1"/>
+              </svg>
+            </div>
+            <div class="station-name">Impact</div>
+            <div class="station-sub">客戶端衝擊</div>
+          </div>
+          <div class="blocks-tier">
+            <div class="mario-block block-0" data-dim="impact" data-val="0" title="嚴重度 0 分">
+              <span class="block-level-badge">0</span>
+            </div>
+            <div class="mario-block block-3" data-dim="impact" data-val="3" title="嚴重度 3 分">
+              <span class="block-level-badge">3</span>
+            </div>
+            <div class="mario-block block-5" data-dim="impact" data-val="5" title="嚴重度 5 分">
+              <span class="block-level-badge">5</span>
+            </div>
+          </div>
+          <div class="warp-pipe"><div class="pipe-top"></div></div>
+        </div>
+
+        <!-- Station 2: Trend -->
+        <div class="station-zone" id="zone-trend">
+          <div class="station-header" onclick="scrollToCard('trend')" title="點擊前往面向 2：Trend">
+            <div class="station-icon-wrap">
+              <div style="display:flex; align-items:flex-end; gap:3px;">
+                <span style="font-size:12px;">🌰</span>
+                <span style="font-size:16px;">🌰</span>
+                <span style="font-size:22px;">🌰</span>
+              </div>
+            </div>
+            <div class="station-name">Trend</div>
+            <div class="station-sub">影響範圍</div>
+          </div>
+          <div class="blocks-tier">
+            <div class="mario-block block-0" data-dim="trend" data-val="0" title="嚴重度 0 分">
+              <span class="block-level-badge">0</span>
+            </div>
+            <div class="mario-block block-3" data-dim="trend" data-val="3" title="嚴重度 3 分">
+              <span class="block-level-badge">3</span>
+            </div>
+            <div class="mario-block block-5" data-dim="trend" data-val="5" title="嚴重度 5 分">
+              <span class="block-level-badge">5</span>
+            </div>
+          </div>
+          <div class="warp-pipe"><div class="pipe-top"></div></div>
+        </div>
+
+        <!-- Station 3: Urgency -->
+        <div class="station-zone" id="zone-urgency">
+          <div class="station-header" onclick="scrollToCard('urgency')" title="點擊前往面向 3：Urgency">
+            <div class="station-icon-wrap">
+              <div style="font-family:'Press Start 2P', monospace; font-size:10px; background:#000; color:#ff3838; padding:3px 6px; border:2px solid #888; border-radius:4px;">
+                <i class="fa-regular fa-clock"></i> 00:00
+              </div>
+            </div>
+            <div class="station-name">Urgency</div>
+            <div class="station-sub">根因收斂及配套方案</div>
+          </div>
+          <div class="blocks-tier">
+            <div class="mario-block block-0" data-dim="urgency" data-val="0" title="嚴重度 0 分">
+              <span class="block-level-badge">0</span>
+            </div>
+            <div class="mario-block block-3" data-dim="urgency" data-val="3" title="嚴重度 3 分">
+              <span class="block-level-badge">3</span>
+            </div>
+            <div class="mario-block block-5" data-dim="urgency" data-val="5" title="嚴重度 5 分">
+              <span class="block-level-badge">5</span>
+            </div>
+          </div>
+          <div class="warp-pipe"><div class="pipe-top"></div></div>
+        </div>
+
+        <!-- Station 4: Risk -->
+        <div class="station-zone" id="zone-risk">
+          <div class="station-header" onclick="scrollToCard('risk')" title="點擊前往面向 4：Risk">
+            <div class="station-icon-wrap">
+              <div style="position:relative; display:inline-block;">
+                <span style="font-size:24px;">📦</span>
+                <i class="fa-solid fa-xmark" style="position:absolute; right:-4px; bottom:-3px; color:#ff2222; font-size:16px; text-shadow:2px 2px #000;"></i>
+              </div>
+            </div>
+            <div class="station-name">Risk</div>
+            <div class="station-sub">品牌風險及對策</div>
+          </div>
+          <div class="blocks-tier">
+            <div class="mario-block block-0" data-dim="risk" data-val="0" title="嚴重度 0 分">
+              <span class="block-level-badge">0</span>
+            </div>
+            <div class="mario-block block-3" data-dim="risk" data-val="3" title="嚴重度 3 分">
+              <span class="block-level-badge">3</span>
+            </div>
+            <div class="mario-block block-5" data-dim="risk" data-val="5" title="嚴重度 5 分">
+              <span class="block-level-badge">5</span>
+            </div>
+          </div>
+          <div class="warp-pipe"><div class="pipe-top"></div></div>
+        </div>
+      </div>
+
+      <!-- Castle & Flag Finish Line -->
+      <div class="castle-flag-area">
+        <div class="flagpole">
+          <div class="flagpole-ball"></div>
+          <div class="cicc-flag" id="cicc-flag">CICC</div>
+        </div>
+        <div style="font-size: 32px; margin-bottom: -3px; margin-left:4px;">🏰</div>
+      </div>
+
+      <!-- Mario Character Sprite -->
+      <div id="mario-character">
+        <svg viewBox="0 0 16 16" class="mario-sprite" id="mario-svg">
+          <rect x="3" y="1" width="5" height="1" fill="#fc3800"/>
+          <rect x="2" y="2" width="9" height="1" fill="#fc3800"/>
+          <rect x="2" y="3" width="3" height="1" fill="#885000"/>
+          <rect x="5" y="3" width="2" height="1" fill="#fcbc00"/>
+          <rect x="7" y="3" width="1" height="1" fill="#000"/>
+          <rect x="8" y="3" width="1" height="1" fill="#fcbc00"/>
+          <rect x="1" y="4" width="1" height="1" fill="#885000"/>
+          <rect x="2" y="4" width="1" height="1" fill="#fcbc00"/>
+          <rect x="3" y="4" width="1" height="1" fill="#885000"/>
+          <rect x="4" y="4" width="3" height="1" fill="#fcbc00"/>
+          <rect x="7" y="4" width="1" height="1" fill="#000"/>
+          <rect x="8" y="4" width="3" height="1" fill="#fcbc00"/>
+          <rect x="1" y="5" width="1" height="1" fill="#885000"/>
+          <rect x="2" y="5" width="2" height="1" fill="#885000"/>
+          <rect x="4" y="5" width="4" height="1" fill="#fcbc00"/>
+          <rect x="8" y="5" width="4" height="1" fill="#885000"/>
+          <rect x="3" y="6" width="6" height="1" fill="#fcbc00"/>
+          <rect x="5" y="6" width="4" height="1" fill="#885000"/>
+          <rect x="3" y="7" width="2" height="3" fill="#fc3800"/>
+          <rect x="5" y="7" width="2" height="3" fill="#0050c0"/>
+          <rect x="7" y="7" width="2" height="3" fill="#fc3800"/>
+          <rect x="2" y="8" width="8" height="2" fill="#0050c0"/>
+          <rect x="4" y="9" width="1" height="1" fill="#fcbc00"/>
+          <rect x="7" y="9" width="1" height="1" fill="#fcbc00"/>
+          <rect x="1" y="9" width="2" height="2" fill="#fcbc00"/>
+          <rect x="9" y="9" width="2" height="2" fill="#fcbc00"/>
+          <rect x="3" y="11" width="6" height="2" fill="#0050c0"/>
+          <rect x="2" y="13" width="3" height="2" fill="#885000"/>
+          <rect x="7" y="13" width="3" height="2" fill="#885000"/>
+        </svg>
+      </div>
+
+      <div class="ground-floor"></div>
+    </div>
+
+    <!-- Detailed Dimensions Section -->
+    <div class="matrix-section">
+
+      <!-- 1. Impact -->
+      <div class="dim-card" id="card-impact">
+        <div class="dim-card-head">
+          <div class="dim-title-group">
+            <span class="dim-badge">面向 1</span>
+            <span class="dim-label">Impact 客戶端衝擊</span>
+          </div>
+          <div class="dim-head-right">
+            <span id="answer-status-impact"></span>
+            <div class="dim-selected-score" id="score-tag-impact" style="background:#444; color:#fff;">未選擇</div>
+          </div>
+        </div>
+
+        <div class="case-incident-box">
+          <div class="case-incident-label">
+            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+          </div>
+          <div class="case-incident-desc">
+            MCN關鍵客戶融合元儲的RTC對時核心功能異常下，該收集到的時間點若錯誤，可能導致現場儲能櫃異常充放電，而造成經濟損失
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option-btn score-0" onclick="selectScore('impact', 0)">
+            <div class="opt-header">
+              <span>嚴重度 0 分</span>
+              <span class="opt-dot dot-0"></span>
+            </div>
+            <div class="opt-desc">無明顯客戶端影響</div>
+          </div>
+          <div class="option-btn score-3" onclick="selectScore('impact', 3)">
+            <div class="opt-header">
+              <span>嚴重度 3 分</span>
+              <span class="opt-dot dot-3"></span>
+            </div>
+            <div class="opt-desc">核心功能受損但有暫緩方案<br>潛在商機受損</div>
+          </div>
+          <div class="option-btn score-5" onclick="selectScore('impact', 5)">
+            <div class="opt-header">
+              <span>嚴重度 5 分</span>
+              <span class="opt-dot dot-5"></span>
+            </div>
+            <div class="opt-desc">停擺 / 驗收失敗 / 罰款<br>關鍵客戶核心功能受損</div>
+          </div>
+        </div>
+
+        <div class="answer-reveal-box" id="reveal-impact">
+          <div class="reveal-title-row">
+            <span class="reveal-badge" id="reveal-badge-impact"></span>
+            <span class="reveal-official-pts">官方裁決：5 分</span>
+          </div>
+          <div class="reveal-reason-text" id="reveal-reason-impact">
+            關鍵客戶核心功能受損且導致現場儲能櫃異常充放電造成實質經濟損失，符合最高嚴重度 5 分標準。
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Trend -->
+      <div class="dim-card" id="card-trend">
+        <div class="dim-card-head">
+          <div class="dim-title-group">
+            <span class="dim-badge">面向 2</span>
+            <span class="dim-label">Trend 影響範圍</span>
+          </div>
+          <div class="dim-head-right">
+            <span id="answer-status-trend"></span>
+            <div class="dim-selected-score" id="score-tag-trend" style="background:#444; color:#fff;">未選擇</div>
+          </div>
+        </div>
+
+        <div class="case-incident-box">
+          <div class="case-incident-label">
+            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+          </div>
+          <div class="case-incident-desc">
+            本案受影響的客戶包含MCN 融合元儲及翼飛等多家客戶，功能受影響的設備數量大於140台，但其根因未擴及於其他產品線。
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option-btn score-0" onclick="selectScore('trend', 0)">
+            <div class="opt-header">
+              <span>嚴重度 0 分</span>
+              <span class="opt-dot dot-0"></span>
+            </div>
+            <div class="opt-desc">影響單一客戶<br>退貨 &lt; 5 件<br>無擴散趨勢</div>
+          </div>
+          <div class="option-btn score-3" onclick="selectScore('trend', 3)">
+            <div class="opt-header">
+              <span>嚴重度 3 分</span>
+              <span class="opt-dot dot-3"></span>
+            </div>
+            <div class="opt-desc">影響 ≥ 2 客戶<br>退貨 ≥ 5 件</div>
+          </div>
+          <div class="option-btn score-5" onclick="selectScore('trend', 5)">
+            <div class="opt-header">
+              <span>嚴重度 5 分</span>
+              <span class="opt-dot dot-5"></span>
+            </div>
+            <div class="opt-desc">影響 ≥ 3 客戶<br>退貨 &gt; 20 件<br>FR &gt; 5%<br>擴及多個產品線</div>
+          </div>
+        </div>
+
+        <div class="answer-reveal-box" id="reveal-trend">
+          <div class="reveal-title-row">
+            <span class="reveal-badge" id="reveal-badge-trend"></span>
+            <span class="reveal-official-pts">官方裁決：3 分</span>
+          </div>
+          <div class="reveal-reason-text" id="reveal-reason-trend">
+            包含MCN、融合元儲及翼飛等多家客戶(≥2客戶)，影響設備>140台，但根因未擴及其他產品線，符合 3 分標準。
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Urgency -->
+      <div class="dim-card" id="card-urgency">
+        <div class="dim-card-head">
+          <div class="dim-title-group">
+            <span class="dim-badge">面向 3</span>
+            <span class="dim-label">Urgency 根因收斂及配套方案</span>
+          </div>
+          <div class="dim-head-right">
+            <span id="answer-status-urgency"></span>
+            <div class="dim-selected-score" id="score-tag-urgency" style="background:#444; color:#fff;">未選擇</div>
+          </div>
+        </div>
+
+        <div class="case-incident-box">
+          <div class="case-incident-label">
+            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+          </div>
+          <div class="case-incident-desc">
+            團隊於收到客退品後一週即收斂問題根因，並確認對策:拆除D3二極體&升級寬溫電池
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option-btn score-0" onclick="selectScore('urgency', 0)">
+            <div class="opt-header">
+              <span>嚴重度 0 分</span>
+              <span class="opt-dot dot-0"></span>
+            </div>
+            <div class="opt-desc">已收斂</div>
+          </div>
+          <div class="option-btn score-3" onclick="selectScore('urgency', 3)">
+            <div class="opt-header">
+              <span>嚴重度 3 分</span>
+              <span class="opt-dot dot-3"></span>
+            </div>
+            <div class="opt-desc">狀態停滯 &gt; 10 天未收斂</div>
+          </div>
+          <div class="option-btn score-5" onclick="selectScore('urgency', 5)">
+            <div class="opt-header">
+              <span>嚴重度 5 分</span>
+              <span class="opt-dot dot-5"></span>
+            </div>
+            <div class="opt-desc">客戶時程受阻<br>進度落後無法收斂</div>
+          </div>
+        </div>
+
+        <div class="answer-reveal-box" id="reveal-urgency">
+          <div class="reveal-title-row">
+            <span class="reveal-badge" id="reveal-badge-urgency"></span>
+            <span class="reveal-official-pts">官方裁決：0 分</span>
+          </div>
+          <div class="reveal-reason-text" id="reveal-reason-urgency">
+            團隊於收到客退品後一週內即迅速收斂問題根因並確認對策，進度受控未停滯延宕，符合「已收斂」0 分標準。
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Risk -->
+      <div class="dim-card" id="card-risk">
+        <div class="dim-card-head">
+          <div class="dim-title-group">
+            <span class="dim-badge">面向 4</span>
+            <span class="dim-label">Risk 品牌風險及對策</span>
+          </div>
+          <div class="dim-head-right">
+            <span id="answer-status-risk"></span>
+            <div class="dim-selected-score" id="score-tag-risk" style="background:#444; color:#fff;">未選擇</div>
+          </div>
+        </div>
+
+        <div class="case-incident-box">
+          <div class="case-incident-label">
+            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+          </div>
+          <div class="case-incident-desc">
+            雖有重工執行方案，但即將出貨設備因重工影響交期，已出貨設備也需等待逐批寄回重工。
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option-btn score-0" onclick="selectScore('risk', 0)">
+            <div class="opt-header">
+              <span>嚴重度 0 分</span>
+              <span class="opt-dot dot-0"></span>
+            </div>
+            <div class="opt-desc">風險可控<br>已有明確執行方案</div>
+          </div>
+          <div class="option-btn score-3" onclick="selectScore('risk', 3)">
+            <div class="opt-header">
+              <span>嚴重度 3 分</span>
+              <span class="opt-dot dot-3"></span>
+            </div>
+            <div class="opt-desc">方案需成本 / 跨部門協調、備品交期受影響</div>
+          </div>
+          <div class="option-btn score-5" onclick="selectScore('risk', 5)">
+            <div class="opt-header">
+              <span>嚴重度 5 分</span>
+              <span class="opt-dot dot-5"></span>
+            </div>
+            <div class="opt-desc">人身安全 / 商譽影響<br>無 Workaround</div>
+          </div>
+        </div>
+
+        <div class="answer-reveal-box" id="reveal-risk">
+          <div class="reveal-title-row">
+            <span class="reveal-badge" id="reveal-badge-risk"></span>
+            <span class="reveal-official-pts">官方裁決：3 分</span>
+          </div>
+          <div class="reveal-reason-text" id="reveal-reason-risk">
+            已有重工方案，但待出貨設備影響交期且已出貨需逐批召回，需跨部門協調與交期成本，故評定為 3 分。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Fullscreen Easter Egg Video Player -->
+  <div id="fullscreen-video-container" class="fullscreen-video-container">
+    <div class="video-exit-tip" onclick="exitFullscreenEasterEgg()">✕ 結束播放 (ESC)</div>
+    <video id="egg-mp4-video" playsinline>
+      <source src="demo.mp4" type="video/mp4">
+      您的瀏覽器不支援影片播放。
+    </video>
+  </div>
+
+  <script>
+    // Video Clip Settings: 28:15 to 28:23 (1695s to 1703s)
+    const VIDEO_CLIP_CONFIG = {
+      START_TIME: 1695,
+      END_TIME: 1703
+    };
+
+    const fsContainer = document.getElementById('fullscreen-video-container');
+    const eggVideo = document.getElementById('egg-mp4-video');
+    const btnMissionComplete = document.getElementById('btn-mission-complete');
+
+    eggVideo.addEventListener('timeupdate', () => {
+      if (eggVideo.currentTime >= VIDEO_CLIP_CONFIG.END_TIME) {
+        exitFullscreenEasterEgg();
+      }
+    });
+
+    function startFullscreenEasterEgg() {
+      fsContainer.classList.add('show');
+      eggVideo.currentTime = VIDEO_CLIP_CONFIG.START_TIME;
+
+      const elem = fsContainer;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+
+      eggVideo.play().catch(e => {
+        console.warn("Auto-play error:", e);
+      });
+    }
+
+    function exitFullscreenEasterEgg() {
+      eggVideo.pause();
+      fsContainer.classList.remove('show');
+
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && fsContainer.classList.contains('show')) {
+        exitFullscreenEasterEgg();
+      }
+    });
+
+    const scores = {
+      impact: null,
+      trend: null,
+      urgency: null,
+      risk: null
+    };
+
+    const caseOfficialData = {
+      impact: {
+        correct: 5,
+        reason: '關鍵客戶核心功能受損且導致現場儲能櫃異常充放電造成實質經濟損失，符合最高嚴重度 5 分標準。'
+      },
+      trend: {
+        correct: 3,
+        reason: '包含MCN、融合元儲及翼飛等多家客戶(≥2客戶)，影響設備>140台，但根因未擴及其他產品線，符合 3 分標準。'
+      },
+      urgency: {
+        correct: 0,
+        reason: '團隊於收到客退品後一週內即迅速收斂問題根因並確認對策，進度受控未停滯延宕，符合「已收斂」0 分標準。'
+      },
+      risk: {
+        correct: 3,
+        reason: '已有重工方案，但待出貨設備影響交期且已出貨需逐批召回，需跨部門協調與交期成本，故評定為 3 分。'
+      }
+    };
+
+    const dimensionOrder = ['impact', 'trend', 'urgency', 'risk'];
+    let soundEnabled = true;
+    let isDemoRunning = false;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, delay = 0) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        setTimeout(() => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        }, delay);
+      } catch (e) {}
+    }
+
+    function playMarioJump() {
+      if (!soundEnabled) return;
+      initAudio();
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(580, audioCtx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch(e) {}
+    }
+
+    function playBlockBumpSound(val) {
+      if (!soundEnabled) return;
+      if (val === 5) {
+        playTone(330, 'square', 0.1, 0);
+        playTone(392, 'square', 0.1, 75);
+        playTone(659, 'square', 0.14, 150);
+        playTone(523, 'square', 0.2, 225);
+      } else if (val === 3) {
+        playTone(260, 'square', 0.08, 0);
+        playTone(440, 'square', 0.12, 75);
+      } else {
+        playTone(300, 'triangle', 0.1, 0);
+      }
+    }
+
+    const marioEl = document.getElementById('mario-character');
+    const viewportEl = document.getElementById('stage-viewport');
+
+    function getStationX(dimension) {
+      const zone = document.getElementById(`zone-${dimension}`);
+      if (!zone) return 30;
+      const rect = zone.getBoundingClientRect();
+      const parentRect = viewportEl.getBoundingClientRect();
+      return rect.left - parentRect.left + (rect.width / 2) - 16;
+    }
+
+    function moveMarioToStation(dim, onArrive) {
+      const targetX = getStationX(dim);
+      marioEl.style.transition = 'left 0.4s cubic-bezier(0.2, 0.8, 0.4, 1), bottom 0.2s';
+      marioEl.style.left = `${targetX}px`;
+
+      setTimeout(() => {
+        if (onArrive) onArrive();
+      }, 420);
+    }
+
+    function marioJumpHit(dim, val) {
+      playMarioJump();
+      marioEl.style.bottom = '105px';
+
+      setTimeout(() => {
+        const block = document.querySelector(`.mario-block[data-dim="${dim}"][data-val="${val}"]`);
+        if (block) {
+          block.classList.add('bumped');
+          setTimeout(() => block.classList.remove('bumped'), 240);
+          showFloatingCoin(block, val);
+          playBlockBumpSound(val);
+        }
+        marioEl.style.bottom = '38px';
+      }, 160);
+    }
+
+    function showFloatingCoin(blockEl, val) {
+      const rect = blockEl.getBoundingClientRect();
+      const parentRect = viewportEl.getBoundingClientRect();
+      const coin = document.createElement('div');
+      coin.className = 'floating-coin-effect';
+      coin.innerText = `+${val} PTS`;
+      coin.style.left = `${rect.left - parentRect.left - 4}px`;
+      coin.style.top = `${rect.top - parentRect.top - 8}px`;
+      viewportEl.appendChild(coin);
+      setTimeout(() => coin.remove(), 750);
+    }
+
+    function moveCardToTop(dim) {
+      const container = document.querySelector('.matrix-section');
+      const targetCard = document.getElementById(`card-${dim}`);
+      if (container && targetCard) {
+        container.prepend(targetCard);
+      }
+    }
+
+    function scrollToCard(dim) {
+      moveCardToTop(dim);
+      const card = document.getElementById(`card-${dim}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.querySelectorAll('.dim-card').forEach(c => c.classList.remove('active-focus'));
+        card.classList.add('active-focus');
+      }
+    }
+
+    function scrollToTop() {
+      const topHud = document.querySelector('.arcade-wrapper') || document.body;
+      topHud.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function selectScore(dimension, val, manualJump = true) {
+      scores[dimension] = val;
+
+      document.querySelectorAll('.dim-card').forEach(c => c.classList.remove('active-focus'));
+      const activeCard = document.getElementById(`card-${dimension}`);
+      if (activeCard) activeCard.classList.add('active-focus');
+
+      if (activeCard) {
+        activeCard.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        const targetBtn = activeCard.querySelector(`.option-btn.score-${val}`);
+        if (targetBtn) targetBtn.classList.add('selected');
+
+        const scoreTag = document.getElementById(`score-tag-${dimension}`);
+        scoreTag.innerText = `${val} 分`;
+        if (val === 0) {
+          scoreTag.style.background = '#2ecc71';
+          scoreTag.style.color = '#000';
+        } else if (val === 3) {
+          scoreTag.style.background = '#f1c40f';
+          scoreTag.style.color = '#000';
+        } else {
+          scoreTag.style.background = '#e74c3c';
+          scoreTag.style.color = '#fff';
+        }
+
+        const revealBox = document.getElementById(`reveal-${dimension}`);
+        const badgeEl = document.getElementById(`reveal-badge-${dimension}`);
+
+        const isCorrect = (val === caseOfficialData[dimension].correct);
+        if (revealBox && badgeEl) {
+          revealBox.className = `answer-reveal-box show ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+          if (isCorrect) {
+            badgeEl.className = 'reveal-badge badge-correct';
+            badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> 您的選擇完全正確！';
+          } else {
+            badgeEl.className = 'reveal-badge badge-wrong';
+            badgeEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> 您選擇了 ${val} 分，官方裁決為 ${caseOfficialData[dimension].correct} 分`;
+          }
+        }
+
+        const statusTag = document.getElementById(`answer-status-${dimension}`);
+        if (statusTag) {
+          if (isCorrect) {
+            statusTag.innerHTML = `<span class="answer-tag tag-correct"><i class="fa-solid fa-check"></i> 正確 (${caseOfficialData[dimension].correct}分)</span>`;
+          } else {
+            statusTag.innerHTML = `<span class="answer-tag tag-wrong"><i class="fa-solid fa-xmark"></i> 選擇${val}分 (正解:${caseOfficialData[dimension].correct}分)</span>`;
+          }
+        }
+      }
+
+      document.querySelectorAll(`.mario-block[data-dim="${dimension}"]`).forEach(b => {
+        b.classList.remove('active');
+        if (parseInt(b.dataset.val) === val) {
+          b.classList.add('active');
+        }
+      });
+
+      if (manualJump && !isDemoRunning) {
+        moveMarioToStation(dimension, () => {
+          marioJumpHit(dimension, val);
+        });
+
+        // 選擇完嚴重度並顯示答案後停留 2 秒，再切換至下個面向
+        setTimeout(() => {
+          if (dimension === 'impact') {
+            moveCardToTop('trend');
+            scrollToCard('trend');
+          } else if (dimension === 'trend') {
+            moveCardToTop('urgency');
+            scrollToCard('urgency');
+          } else if (dimension === 'urgency') {
+            moveCardToTop('risk');
+            scrollToCard('risk');
+          } else if (dimension === 'risk') {
+            scrollToTop();
+          }
+        }, 2000);
+      }
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const validScores = dimensionOrder.map(d => scores[d] ?? 0);
+      const total = validScores.reduce((a, b) => a + b, 0);
+
+      document.getElementById('calc-total').innerText = total;
+
+      const decisionBox = document.getElementById('decision-box');
+      const flagEl = document.getElementById('cicc-flag');
+
+      const critGte12 = document.getElementById('crit-gte12');
+      const crit8to11 = document.getElementById('crit-8to11');
+      const critLt8 = document.getElementById('crit-lt8');
+
+      critGte12.classList.remove('active');
+      crit8to11.classList.remove('active');
+      critLt8.classList.remove('active');
+
+      decisionBox.className = 'master-total-pill';
+
+      if (total >= 12) {
+        decisionBox.classList.add('escalate');
+        flagEl.style.top = '6px';
+        critGte12.classList.add('active');
+      } else if (total >= 8) {
+        decisionBox.classList.add('director');
+        flagEl.style.top = '32px';
+        crit8to11.classList.add('active');
+      } else {
+        decisionBox.classList.add('normal');
+        flagEl.style.top = '60px';
+        critLt8.classList.add('active');
+      }
+
+      // Display MISSION COMPLETE button ONLY when all 4 dimensions are chosen
+      const allAnswered = dimensionOrder.every(d => scores[d] !== null);
+      if (allAnswered) {
+        btnMissionComplete.classList.add('show');
+      } else {
+        btnMissionComplete.classList.remove('show');
+      }
+    }
+
+    async function runDemoAnimation() {
+      if (isDemoRunning) return;
+      isDemoRunning = true;
+      const demoBtn = document.getElementById('btn-demo-walk');
+      demoBtn.disabled = true;
+      demoBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 演練中...';
+
+      resetAll(false);
+
+      const demoSequence = [
+        { dim: 'impact', val: 5, delay: 800 },
+        { dim: 'trend', val: 3, delay: 800 },
+        { dim: 'urgency', val: 0, delay: 800 },
+        { dim: 'risk', val: 3, delay: 900 }
+      ];
+
+      for (const step of demoSequence) {
+        await new Promise(resolve => {
+          moveMarioToStation(step.dim, () => {
+            selectScore(step.dim, step.val, false);
+            marioJumpHit(step.dim, step.val);
+            setTimeout(resolve, step.delay);
+          });
+        });
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+      marioEl.style.left = `${viewportEl.clientWidth - 110}px`;
+
+      demoBtn.disabled = false;
+      demoBtn.innerHTML = '<i class="fa-solid fa-play"></i> DEMO 演練';
+      isDemoRunning = false;
+    }
+
+    function resetAll(resetPos = true) {
+      exitFullscreenEasterEgg();
+      btnMissionComplete.classList.remove('show');
+
+      dimensionOrder.forEach(dim => {
+        scores[dim] = null;
+        const activeCard = document.getElementById(`card-${dim}`);
+        if (activeCard) {
+          activeCard.classList.remove('active-focus');
+          activeCard.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        }
+        const scoreTag = document.getElementById(`score-tag-${dim}`);
+        if (scoreTag) {
+          scoreTag.innerText = '未選擇';
+          scoreTag.style.background = '#444';
+          scoreTag.style.color = '#fff';
+        }
+        const revealBox = document.getElementById(`reveal-${dim}`);
+        if (revealBox) revealBox.className = 'answer-reveal-box';
+        const statusTag = document.getElementById(`answer-status-${dim}`);
+        if (statusTag) statusTag.innerHTML = '';
+
+        document.querySelectorAll(`.mario-block[data-dim="${dim}"]`).forEach(b => {
+          b.classList.remove('active');
+        });
+      });
+
+      // Restore initial order: Impact, Trend, Urgency, Risk
+      const container = document.querySelector('.matrix-section');
+      if (container) {
+        ['risk', 'urgency', 'trend', 'impact'].forEach(dim => {
+          const card = document.getElementById(`card-${dim}`);
+          if (card) container.prepend(card);
+        });
+      }
+
+      if (resetPos) {
+        marioEl.style.left = '20px';
+        marioEl.style.bottom = '38px';
+      }
+      updateTotals();
+    }
+
+    document.querySelectorAll('.mario-block').forEach(block => {
+      block.addEventListener('click', () => {
+        const dim = block.dataset.dim;
+        const val = parseInt(block.dataset.val);
+        selectScore(dim, val, true);
+      });
+    });
+
+    document.getElementById('btn-demo-walk').addEventListener('click', runDemoAnimation);
+    document.getElementById('btn-reset').addEventListener('click', () => resetAll(true));
+
+    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('sound-icon');
+      const btn = document.getElementById('btn-sound-toggle');
+      if (soundEnabled) {
+        icon.className = 'fa-solid fa-volume-high';
+        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> 音效: 開';
+        playTone(440, 'square', 0.1);
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark';
+        btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> 音效: 關';
+      }
+    });
+
+    window.addEventListener('load', () => {
+      resetAll(true);
+      marioEl.style.left = `${getStationX('impact') - 30}px`;
+    });
+  </script>
+</body>
+</html>
