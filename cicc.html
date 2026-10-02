@@ -71,24 +71,24 @@
       box-shadow: inset 0 8px 0 #00e000;
     }
 
-    /* 聚焦放大模式：整張卡片完整無裁切、包含上方Stage標籤與四周黑框 */
-    .flow-node.stage-zoomed {
-      position: absolute !important;
-      top: 8% !important;
-      left: 27% !important;
-      width: 46% !important;
-      z-index: 50 !important;
-      transform-origin: center center !important;
-      transform: scale(1.58) !important;
-      box-shadow: 0 10px 0 #000, 0 -6px 0 #000, 8px 0 0 #000, -8px 0 0 #000, 0 30px 60px rgba(0,0,0,0.45) !important;
-      cursor: zoom-out !important;
-      overflow: visible !important;
-      animation: zoomSmooth 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+    /* 中央獨立聚焦容器：保證不被父層剪裁、完美置中、四周無損 */
+    #zoom-focus-stage {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1.75);
+      z-index: 60;
+      width: 420px;
+      cursor: zoom-out;
+      pointer-events: auto;
+      filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
+      animation: zoomPopCenter 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+      overflow: visible;
     }
 
-    @keyframes zoomSmooth {
-      0% { transform: scale(1); opacity: 0.85; }
-      100% { transform: scale(1.58); opacity: 1; }
+    @keyframes zoomPopCenter {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(1.75); opacity: 1; }
     }
 
     /* Floating / Bouncing Mario animations */
@@ -166,7 +166,7 @@
 
     <!-- Main Content Stage -->
     <main class="flex-1 w-full px-8 py-3.5 flex flex-col justify-between gap-3 overflow-hidden relative">
-      <!-- Action Controls Bar (已移除提示文字) -->
+      <!-- Action Controls Bar -->
       <div class="bg-blue-900/80 px-6 py-2.5 rounded-lg border-2 border-black flex items-center justify-between shadow">
         <div class="flex items-center gap-3">
           <span class="font-pixel text-sm text-yellow-300">模式:</span>
@@ -181,6 +181,9 @@
 
       <!-- Retro Interactive Stage Area -->
       <div id="stage-arena" class="relative flex-1 bg-gradient-to-b from-[#5c94fc] via-[#85b5ff] to-[#a0c8ff] rounded-xl border-4 border-black overflow-hidden shadow-2xl flex flex-col justify-between">
+
+        <!-- 獨立正中央無損放大層（點選 Stage 時掛載） -->
+        <div id="zoom-focus-stage" class="hidden"></div>
 
         <!-- Background Pixel Elements -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden">
@@ -666,7 +669,7 @@
     let isAutoPlaying = false;
     let autoTimer = null;
     let userCoins = 3;
-    let currentZoomedNode = null;
+    let activeZoomedId = null;
 
     const marioEl = document.getElementById('mario-character');
     const speechEl = document.getElementById('mario-speech');
@@ -681,26 +684,38 @@
     const btnManual = document.getElementById('btn-mode-manual');
     const btnAuto = document.getElementById('btn-mode-auto');
     const finishFlag = document.getElementById('finish-flag');
+    const zoomFocusStage = document.getElementById('zoom-focus-stage');
 
+    // 完美置中克隆放大
     function toggleZoomNode(nodeEl) {
-      if (currentZoomedNode === nodeEl) {
+      if (activeZoomedId === nodeEl.id) {
         closeZoom();
       } else {
-        if (currentZoomedNode) {
-          currentZoomedNode.classList.remove('stage-zoomed');
-        }
-        currentZoomedNode = nodeEl;
-        currentZoomedNode.classList.add('stage-zoomed');
+        activeZoomedId = nodeEl.id;
+        zoomFocusStage.innerHTML = '';
+        
+        // 深度複製該卡片內容，使其脫離原本 Grid 排版束縛
+        const clone = nodeEl.cloneNode(true);
+        clone.id = 'zoomed-clone-card';
+        // 移除原有 hover 動畫與錨點
+        clone.classList.remove('hover:scale-102', 'cursor-pointer');
+        const pin = clone.querySelector('.mario-spot');
+        if (pin) pin.remove();
+
+        zoomFocusStage.appendChild(clone);
+        zoomFocusStage.classList.remove('hidden');
         audio.playCoin();
       }
     }
 
     function closeZoom() {
-      if (currentZoomedNode) {
-        currentZoomedNode.classList.remove('stage-zoomed');
-        currentZoomedNode = null;
-      }
+      activeZoomedId = null;
+      zoomFocusStage.classList.add('hidden');
+      zoomFocusStage.innerHTML = '';
     }
+
+    // 點擊置中的放大卡片本身即可關閉
+    zoomFocusStage.addEventListener('click', closeZoom);
 
     function updateUIForStep(stepIdx, triggerAudio = true) {
       const nodeKey = MAIN_PATH[stepIdx];
@@ -829,6 +844,7 @@
       speechEl.classList.remove('opacity-0');
     });
 
+    // 點擊原卡片觸發置中放大
     Object.keys(FLOW_NODES).forEach(key => {
       const nodeObj = FLOW_NODES[key];
       const el = document.getElementById(nodeObj.id);
@@ -844,8 +860,9 @@
       }
     });
 
+    // 點擊背景空白處關閉放大
     document.getElementById('stage-arena').addEventListener('click', (e) => {
-      if (!e.target.closest('.flow-node')) {
+      if (!e.target.closest('.flow-node') && !e.target.closest('#zoom-focus-stage')) {
         closeZoom();
       }
     });
