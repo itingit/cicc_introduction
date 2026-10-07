@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- YouTube 內嵌必要政策：允許發送來源網域以防止錯誤 153 -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>CICC 四大面向判斷評分 - 瑪利歐冒險篇 (Case: CICC-26003)</title>
-  <!-- Google Fonts: Retro 8-bit & Pixel Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     :root {
@@ -34,7 +31,7 @@
 
     body {
       background-color: #0d0d14;
-      font-family: 'DotGothic16', 'Press Start 2P', monospace;
+      font-family: 'Courier New', monospace, sans-serif;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -54,6 +51,8 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 1;
     }
 
     /* Top HUD Bar */
@@ -64,7 +63,6 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 3px solid #323247;
-      font-family: 'Press Start 2P', monospace;
       font-size: 11px;
       color: var(--hud-white);
       letter-spacing: 0.5px;
@@ -83,15 +81,14 @@
     .hud-case-badge {
       background: #ff3800;
       color: #fff;
-      font-size: 10px;
+      font-size: 11px;
       padding: 3px 6px;
       border-radius: 4px;
       border: 1px solid #fff;
-      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
     }
     .hud-case-text {
-      font-family: 'DotGothic16', monospace;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
       color: #fcbc00;
       letter-spacing: 0.5px;
@@ -110,8 +107,9 @@
       border: 2px solid #fff;
       border-radius: 4px;
       padding: 6px 10px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
       cursor: pointer;
       box-shadow: 0 3px #8b2500;
       transition: all 0.1s ease;
@@ -156,20 +154,19 @@
       padding: 6px 14px;
       display: flex;
       gap: 14px;
-      font-family: 'DotGothic16', monospace;
-      font-size: 18px;
+      font-size: 15px;
       align-items: center;
       box-shadow: 0 0 12px rgba(252, 188, 0, 0.25);
       letter-spacing: 0.5px;
     }
     .crit-label-tag {
       color: #ffe600;
-      font-family: 'Press Start 2P', monospace;
       font-size: 11px;
       background: #000;
       padding: 3px 6px;
       border-radius: 4px;
       border: 2px solid #ffe600;
+      font-weight: bold;
     }
     .crit-item {
       padding: 4px 10px;
@@ -221,21 +218,19 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
     .master-total-pill .total-title {
-      font-family: 'DotGothic16', monospace;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: bold;
       color: #fcbc00;
     }
     .master-total-pill .total-score-val {
-      font-family: 'Press Start 2P', monospace;
       font-size: 24px;
+      font-weight: bold;
       color: #fff;
       text-shadow: 2px 2px #000;
       line-height: 1;
     }
     .master-total-pill .total-unit {
-      font-family: 'DotGothic16', monospace;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: bold;
       color: #fff;
     }
@@ -260,8 +255,9 @@
       color: #fff;
       border: 2px solid #fff;
       border-radius: 6px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
       cursor: pointer;
       box-shadow: 0 3px 0 #590000;
       animation: completePulse 1s infinite alternate;
@@ -269,7 +265,7 @@
       white-space: nowrap;
     }
     .btn-mission-complete.show {
-      display: inline-block;
+      display: inline-block !important;
     }
     @keyframes completePulse {
       0% { box-shadow: 0 0 4px #ffcc00; }
@@ -374,7 +370,7 @@
       border-color: #fcbc00;
     }
     .station-icon-wrap {
-      height: 30px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -388,7 +384,7 @@
       letter-spacing: 0.5px;
     }
     .station-sub {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
       color: #ffffff;
       white-space: nowrap;
@@ -433,8 +429,7 @@
     }
 
     .block-level-badge {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: bold;
       color: #000;
     }
@@ -497,10 +492,10 @@
       color: #fff;
       padding: 1px 4px;
       font-size: 8px;
-      font-family: 'Press Start 2P', monospace;
       border: 1px solid #000;
       border-radius: 2px;
       transition: top 0.5s ease;
+      font-weight: bold;
     }
 
     #mario-character {
@@ -521,7 +516,6 @@
 
     .floating-coin-effect {
       position: absolute;
-      font-family: 'Press Start 2P', monospace;
       font-size: 13px;
       font-weight: bold;
       color: #fce803;
@@ -580,7 +574,7 @@
       color: #5c94fc;
     }
     .dim-label {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       color: #fff;
       letter-spacing: 0.5px;
@@ -591,14 +585,13 @@
       gap: 10px;
     }
     .dim-selected-score {
-      font-family: 'Press Start 2P', monospace;
       font-size: 12px;
       padding: 5px 10px;
       border-radius: 5px;
       border: 2px solid #000;
+      font-weight: bold;
     }
 
-    /* Incident Context Box */
     .case-incident-box {
       background: #151522;
       border-left: 5px solid #fcbc00;
@@ -618,13 +611,12 @@
       gap: 6px;
     }
     .case-incident-desc {
-      font-size: 18px;
+      font-size: 16px;
       color: #f4f6fa;
       line-height: 1.45;
       font-weight: 500;
     }
 
-    /* Options Grid */
     .options-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -669,7 +661,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
     }
     .opt-dot {
@@ -683,7 +675,7 @@
     .dot-5 { background: #e74c3c; }
 
     .opt-desc {
-      font-size: 16px;
+      font-size: 14px;
       color: #e4e7f0;
       line-height: 1.45;
       letter-spacing: 0.3px;
@@ -724,7 +716,7 @@
       margin-bottom: 4px;
     }
     .reveal-badge {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       display: inline-flex;
       align-items: center;
@@ -733,16 +725,16 @@
     .reveal-badge.badge-correct { color: #5ef39d; }
     .reveal-badge.badge-wrong { color: #ff8585; }
     .reveal-official-pts {
-      font-family: 'Press Start 2P', monospace;
       font-size: 11px;
       background: #000;
       color: #fcbc00;
       padding: 3px 6px;
       border-radius: 4px;
       border: 1px solid #777;
+      font-weight: bold;
     }
     .reveal-reason-text {
-      font-size: 17px;
+      font-size: 15px;
       color: #f1f4fc;
       line-height: 1.45;
     }
@@ -752,52 +744,71 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Modal Overlay */
     .fullscreen-video-container {
-      display: none;
+      display: none !important;
       position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 99999;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 999999;
       justify-content: center;
       align-items: center;
       flex-direction: column;
     }
     .fullscreen-video-container.show {
-      display: flex;
+      display: flex !important;
     }
-    .fullscreen-video-container video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: contain;
+    .video-inner-box {
+      position: relative;
+      width: 85vw;
+      max-width: 900px;
+      aspect-ratio: 16 / 9;
       background: #000;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+      border: 2px solid #666;
+      border-radius: 8px;
+      overflow: hidden;
     }
-    .video-exit-tip {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      z-index: 100000;
-      background: rgba(0, 0, 0, 0.75);
+    .video-inner-box iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .video-top-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .modal-btn {
+      background: #222;
       border: 2px solid #fcbc00;
       color: #fff;
       padding: 8px 16px;
       border-radius: 6px;
       font-size: 13px;
-      font-family: 'Press Start 2P', monospace;
       cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .modal-btn:hover {
+      background: #fcbc00;
+      color: #000;
     }
 
     @media (max-width: 900px) {
       .options-row { grid-template-columns: 1fr; }
-      .hud-criteria-box { font-size: 15px; }
-      .station-sub { font-size: 13px; }
-      .case-incident-desc { font-size: 16px; }
+      .hud-criteria-box { font-size: 13px; }
+      .station-sub { font-size: 12px; }
+      .case-incident-desc { font-size: 14px; }
     }
   </style>
 </head>
 <body>
 
   <div class="arcade-wrapper">
-    <!-- Top Retro HUD: Case Title replaces Mario Standby -->
     <div class="game-hud">
       <div class="hud-case-group">
         <span class="hud-case-badge">CASE</span>
@@ -805,18 +816,17 @@
       </div>
       <div class="hud-buttons">
         <button class="btn-pixel btn-green" id="btn-demo-walk">
-          <i class="fa-solid fa-play"></i> DEMO 演練
+          ▶ DEMO 演練
         </button>
         <button class="btn-pixel btn-yellow" id="btn-reset">
-          <i class="fa-solid fa-rotate-right"></i> 重置
+          ↺ 重置
         </button>
         <button class="btn-pixel" id="btn-sound-toggle">
-          <i class="fa-solid fa-volume-high" id="sound-icon"></i> 音效
+          🔊 音效: 開
         </button>
       </div>
     </div>
 
-    <!-- Master Stage Header Dashboard: Criteria and Total Score (from cicc_score.html) -->
     <div class="stage-master-board">
       <div class="hud-criteria-box">
         <span class="crit-label-tag">CRITERIA 標準</span>
@@ -838,37 +848,30 @@
       </div>
     </div>
 
-    <!-- Compact Mario Stage Viewport -->
     <div class="stage-viewport" id="stage-viewport">
       <div class="cloud cloud-1"></div>
       <div class="cloud cloud-2"></div>
       <div class="hill hill-1"></div>
       <div class="hill hill-2"></div>
 
-      <!-- 4 Dimensions Stations Track -->
       <div class="dimension-track">
         <!-- Station 1: Impact -->
         <div class="station-zone" id="zone-impact">
           <div class="station-header" onclick="scrollToCard('impact')" title="點擊前往面向 1：Impact">
             <div class="station-icon-wrap">
-              <svg style="width:28px; height:28px; filter: drop-shadow(0 2px 0 #000);" viewBox="0 0 32 32">
-                <polygon points="16,1 21,11 31,12 23,20 26,31 16,25 6,31 9,20 1,12 11,11" fill="#fcbc00" stroke="#000" stroke-width="2"/>
-                <circle cx="12" cy="14" r="1.5" fill="#000"/>
-                <circle cx="20" cy="14" r="1.5" fill="#000"/>
-                <path d="M19,16 Q20,20 22,22 Q21,24 19,23 Q18,21 19,16" fill="#38c0fc" stroke="#004080" stroke-width="1"/>
-              </svg>
+              <span style="font-size:20px;">⭐</span>
             </div>
             <div class="station-name">Impact</div>
             <div class="station-sub">客戶端衝擊</div>
           </div>
           <div class="blocks-tier">
-            <div class="mario-block block-0" data-dim="impact" data-val="0" title="嚴重度 0 分">
+            <div class="mario-block block-0" data-dim="impact" data-val="0">
               <span class="block-level-badge">0</span>
             </div>
-            <div class="mario-block block-3" data-dim="impact" data-val="3" title="嚴重度 3 分">
+            <div class="mario-block block-3" data-dim="impact" data-val="3">
               <span class="block-level-badge">3</span>
             </div>
-            <div class="mario-block block-5" data-dim="impact" data-val="5" title="嚴重度 5 分">
+            <div class="mario-block block-5" data-dim="impact" data-val="5">
               <span class="block-level-badge">5</span>
             </div>
           </div>
@@ -879,23 +882,19 @@
         <div class="station-zone" id="zone-trend">
           <div class="station-header" onclick="scrollToCard('trend')" title="點擊前往面向 2：Trend">
             <div class="station-icon-wrap">
-              <div style="display:flex; align-items:flex-end; gap:3px;">
-                <span style="font-size:12px;">🌰</span>
-                <span style="font-size:16px;">🌰</span>
-                <span style="font-size:22px;">🌰</span>
-              </div>
+              <span style="font-size:18px;">🌰🌰</span>
             </div>
             <div class="station-name">Trend</div>
             <div class="station-sub">影響範圍</div>
           </div>
           <div class="blocks-tier">
-            <div class="mario-block block-0" data-dim="trend" data-val="0" title="嚴重度 0 分">
+            <div class="mario-block block-0" data-dim="trend" data-val="0">
               <span class="block-level-badge">0</span>
             </div>
-            <div class="mario-block block-3" data-dim="trend" data-val="3" title="嚴重度 3 分">
+            <div class="mario-block block-3" data-dim="trend" data-val="3">
               <span class="block-level-badge">3</span>
             </div>
-            <div class="mario-block block-5" data-dim="trend" data-val="5" title="嚴重度 5 分">
+            <div class="mario-block block-5" data-dim="trend" data-val="5">
               <span class="block-level-badge">5</span>
             </div>
           </div>
@@ -906,21 +905,19 @@
         <div class="station-zone" id="zone-urgency">
           <div class="station-header" onclick="scrollToCard('urgency')" title="點擊前往面向 3：Urgency">
             <div class="station-icon-wrap">
-              <div style="font-family:'Press Start 2P', monospace; font-size:10px; background:#000; color:#ff3838; padding:3px 6px; border:2px solid #888; border-radius:4px;">
-                <i class="fa-regular fa-clock"></i> 00:00
-              </div>
+              <span style="font-size:16px;">⏰ 00:00</span>
             </div>
             <div class="station-name">Urgency</div>
             <div class="station-sub">根因收斂及配套方案</div>
           </div>
           <div class="blocks-tier">
-            <div class="mario-block block-0" data-dim="urgency" data-val="0" title="嚴重度 0 分">
+            <div class="mario-block block-0" data-dim="urgency" data-val="0">
               <span class="block-level-badge">0</span>
             </div>
-            <div class="mario-block block-3" data-dim="urgency" data-val="3" title="嚴重度 3 分">
+            <div class="mario-block block-3" data-dim="urgency" data-val="3">
               <span class="block-level-badge">3</span>
             </div>
-            <div class="mario-block block-5" data-dim="urgency" data-val="5" title="嚴重度 5 分">
+            <div class="mario-block block-5" data-dim="urgency" data-val="5">
               <span class="block-level-badge">5</span>
             </div>
           </div>
@@ -931,22 +928,19 @@
         <div class="station-zone" id="zone-risk">
           <div class="station-header" onclick="scrollToCard('risk')" title="點擊前往面向 4：Risk">
             <div class="station-icon-wrap">
-              <div style="position:relative; display:inline-block;">
-                <span style="font-size:24px;">📦</span>
-                <i class="fa-solid fa-xmark" style="position:absolute; right:-4px; bottom:-3px; color:#ff2222; font-size:16px; text-shadow:2px 2px #000;"></i>
-              </div>
+              <span style="font-size:18px;">📦 ❌</span>
             </div>
             <div class="station-name">Risk</div>
             <div class="station-sub">品牌風險及對策</div>
           </div>
           <div class="blocks-tier">
-            <div class="mario-block block-0" data-dim="risk" data-val="0" title="嚴重度 0 分">
+            <div class="mario-block block-0" data-dim="risk" data-val="0">
               <span class="block-level-badge">0</span>
             </div>
-            <div class="mario-block block-3" data-dim="risk" data-val="3" title="嚴重度 3 分">
+            <div class="mario-block block-3" data-dim="risk" data-val="3">
               <span class="block-level-badge">3</span>
             </div>
-            <div class="mario-block block-5" data-dim="risk" data-val="5" title="嚴重度 5 分">
+            <div class="mario-block block-5" data-dim="risk" data-val="5">
               <span class="block-level-badge">5</span>
             </div>
           </div>
@@ -954,7 +948,6 @@
         </div>
       </div>
 
-      <!-- Castle & Flag Finish Line -->
       <div class="castle-flag-area">
         <div class="flagpole">
           <div class="flagpole-ball"></div>
@@ -963,7 +956,6 @@
         <div style="font-size: 32px; margin-bottom: -3px; margin-left:4px;">🏰</div>
       </div>
 
-      <!-- Mario Character Sprite -->
       <div id="mario-character">
         <svg viewBox="0 0 16 16" class="mario-sprite" id="mario-svg">
           <rect x="3" y="1" width="5" height="1" fill="#fc3800"/>
@@ -1001,9 +993,7 @@
       <div class="ground-floor"></div>
     </div>
 
-    <!-- Detailed Dimensions Section -->
     <div class="matrix-section">
-
       <!-- 1. Impact -->
       <div class="dim-card" id="card-impact">
         <div class="dim-card-head">
@@ -1019,7 +1009,7 @@
 
         <div class="case-incident-box">
           <div class="case-incident-label">
-            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+            ⚠️ 案件情境
           </div>
           <div class="case-incident-desc">
             MCN關鍵客戶融合元儲的RTC對時核心功能異常下，該收集到的時間點若錯誤，可能導致現場儲能櫃異常充放電，而造成經濟損失
@@ -1076,7 +1066,7 @@
 
         <div class="case-incident-box">
           <div class="case-incident-label">
-            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+            ⚠️ 案件情境
           </div>
           <div class="case-incident-desc">
             本案受影響的客戶包含MCN 融合元儲及翼飛等多家客戶，功能受影響的設備數量大於140台，但其根因未擴及於其他產品線。
@@ -1133,7 +1123,7 @@
 
         <div class="case-incident-box">
           <div class="case-incident-label">
-            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+            ⚠️ 案件情境
           </div>
           <div class="case-incident-desc">
             雖有重工執行方案，但即將出貨設備因重工影響交期，已出貨設備也需等待逐批寄回重工，同時電池更換，受到國際物流對電池運送的相關限制，讓重工難度增加
@@ -1190,7 +1180,7 @@
 
         <div class="case-incident-box">
           <div class="case-incident-label">
-            <i class="fa-solid fa-triangle-exclamation"></i> 案件情境
+            ⚠️ 案件情境
           </div>
           <div class="case-incident-desc">
             團隊收到客退品後在短時間內就確認明確可執行之對策:拆除D3二極體&升級寬溫電池
@@ -1231,69 +1221,46 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Fullscreen Easter Egg Video Player -->
-  <div id="fullscreen-video-container" class="fullscreen-video-container">
-    <div class="video-exit-tip" onclick="exitFullscreenEasterEgg()">✕ 結束播放 (ESC)</div>
-    <video id="egg-mp4-video" playsinline>
-      <source src="demo.mp4" type="video/mp4">
-      您的瀏覽器不支援影片播放。
-    </video>
+  <!-- Video Modal Overlay -->
+  <div id="fullscreen-video-container" class="fullscreen-video-container" style="display: none !important;">
+    <div class="video-top-bar">
+      <a href="https://www.youtube.com/watch?v=gu2lCofI2_c&t=1695s" target="_blank" class="modal-btn">
+        ↗ 在 YouTube 新分頁播放 (28:15)
+      </a>
+      <button class="modal-btn" onclick="exitFullscreenEasterEgg()">✕ 關閉影片 (ESC)</button>
+    </div>
+    <div class="video-inner-box">
+      <iframe id="egg-yt-iframe"
+        src=""
+        title="YouTube video player"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
   </div>
 
   <script>
-    const VIDEO_CLIP_CONFIG = {
-      START_TIME: 0,
-      END_TIME: Infinity
-    };
-
     const fsContainer = document.getElementById('fullscreen-video-container');
-    const eggVideo = document.getElementById('egg-mp4-video');
+    const eggIframe = document.getElementById('egg-yt-iframe');
     const btnMissionComplete = document.getElementById('btn-mission-complete');
 
-    // 播放完影片時僅退出全螢幕並關閉影片播放器
-    eggVideo.addEventListener('ended', () => {
-      exitFullscreenEasterEgg();
-    });
-
-    eggVideo.addEventListener('timeupdate', () => {
-      if (eggVideo.currentTime >= VIDEO_CLIP_CONFIG.END_TIME) {
-        exitFullscreenEasterEgg();
-      }
-    });
+    // 播放 28分15秒(1695s) 至 28分22秒(1702s)
+    const YT_VIDEO_URL = "https://www.youtube.com/embed/gu2lCofI2_c?start=1695&end=1702&autoplay=1";
 
     function startFullscreenEasterEgg() {
       fsContainer.classList.add('show');
-      eggVideo.currentTime = VIDEO_CLIP_CONFIG.START_TIME;
-
-      const elem = fsContainer;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(() => {});
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-      }
-
-      eggVideo.play().catch(e => {
-        console.warn("Auto-play error:", e);
-      });
+      fsContainer.style.setProperty('display', 'flex', 'important');
+      eggIframe.src = YT_VIDEO_URL;
     }
 
     function exitFullscreenEasterEgg() {
-      eggVideo.pause();
+      eggIframe.src = "";
       fsContainer.classList.remove('show');
-
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
-      }
+      fsContainer.style.setProperty('display', 'none', 'important');
     }
 
     document.addEventListener('keydown', (e) => {
@@ -1335,39 +1302,51 @@
 
     function initAudio() {
       if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+          }
+        } catch (e) {}
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
       }
     }
 
     function playTone(freq, type, duration, delay = 0) {
       if (!soundEnabled) return;
-      try {
-        initAudio();
-        setTimeout(() => {
+      initAudio();
+      if (!audioCtx) return;
+
+      setTimeout(() => {
+        try {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = type;
           osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
           osc.connect(gain);
           gain.connect(audioCtx.destination);
           osc.start();
           osc.stop(audioCtx.currentTime + duration);
-        }, delay);
-      } catch (e) {}
+        } catch (e) {}
+      }, delay);
     }
 
     function playMarioJump() {
       if (!soundEnabled) return;
       initAudio();
+      if (!audioCtx) return;
+
       try {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'square';
         osc.frequency.setValueAtTime(140, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(580, audioCtx.currentTime + 0.16);
-        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -1496,19 +1475,19 @@
           revealBox.className = `answer-reveal-box show ${isCorrect ? 'is-correct' : 'is-wrong'}`;
           if (isCorrect) {
             badgeEl.className = 'reveal-badge badge-correct';
-            badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> 您的選擇完全正確！';
+            badgeEl.innerHTML = '✔ 您的選擇完全正確！';
           } else {
             badgeEl.className = 'reveal-badge badge-wrong';
-            badgeEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> 您選擇了 ${val} 分，官方裁決為 ${caseOfficialData[dimension].correct} 分`;
+            badgeEl.innerHTML = `✘ 您選擇了 ${val} 分，官方裁決為 ${caseOfficialData[dimension].correct} 分`;
           }
         }
 
         const statusTag = document.getElementById(`answer-status-${dimension}`);
         if (statusTag) {
           if (isCorrect) {
-            statusTag.innerHTML = `<span class="answer-tag tag-correct"><i class="fa-solid fa-check"></i> 正確 (${caseOfficialData[dimension].correct}分)</span>`;
+            statusTag.innerHTML = `<span class="answer-tag tag-correct">✔ 正確 (${caseOfficialData[dimension].correct}分)</span>`;
           } else {
-            statusTag.innerHTML = `<span class="answer-tag tag-wrong"><i class="fa-solid fa-xmark"></i> 選擇${val}分 (正解:${caseOfficialData[dimension].correct}分)</span>`;
+            statusTag.innerHTML = `<span class="answer-tag tag-wrong">✘ 選擇${val}分 (正解:${caseOfficialData[dimension].correct}分)</span>`;
           }
         }
       }
@@ -1525,7 +1504,6 @@
           marioJumpHit(dimension, val);
         });
 
-        // 選擇完嚴重度並顯示答案後停留 2 秒，再切換至下個面向
         setTimeout(() => {
           if (dimension === 'impact') {
             moveCardToTop('trend');
@@ -1578,7 +1556,6 @@
         critLt8.classList.add('active');
       }
 
-      // Display MISSION COMPLETE button ONLY when all 4 dimensions are chosen
       const allAnswered = dimensionOrder.every(d => scores[d] !== null);
       if (allAnswered) {
         btnMissionComplete.classList.add('show');
@@ -1592,7 +1569,7 @@
       isDemoRunning = true;
       const demoBtn = document.getElementById('btn-demo-walk');
       demoBtn.disabled = true;
-      demoBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 演練中...';
+      demoBtn.innerText = '演練中...';
 
       resetAll(false);
 
@@ -1617,7 +1594,7 @@
       marioEl.style.left = `${viewportEl.clientWidth - 110}px`;
 
       demoBtn.disabled = false;
-      demoBtn.innerHTML = '<i class="fa-solid fa-play"></i> DEMO 演練';
+      demoBtn.innerText = '▶ DEMO 演練';
       isDemoRunning = false;
     }
 
@@ -1648,7 +1625,6 @@
         });
       });
 
-      // Restore initial order: Impact, Trend, Urgency, Risk
       const container = document.querySelector('.matrix-section');
       if (container) {
         ['risk', 'urgency', 'trend', 'impact'].forEach(dim => {
@@ -1677,21 +1653,20 @@
 
     document.getElementById('btn-sound-toggle').addEventListener('click', () => {
       soundEnabled = !soundEnabled;
-      const icon = document.getElementById('sound-icon');
       const btn = document.getElementById('btn-sound-toggle');
       if (soundEnabled) {
-        icon.className = 'fa-solid fa-volume-high';
-        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> 音效: 開';
+        btn.innerText = '🔊 音效: 開';
         playTone(440, 'square', 0.1);
       } else {
-        icon.className = 'fa-solid fa-volume-xmark';
-        btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> 音效: 關';
+        btn.innerText = '🔇 音效: 關';
       }
     });
 
-    window.addEventListener('load', () => {
+    window.addEventListener('DOMContentLoaded', () => {
       resetAll(true);
-      marioEl.style.left = `${getStationX('impact') - 30}px`;
+      setTimeout(() => {
+        marioEl.style.left = `${getStationX('impact') - 30}px`;
+      }, 100);
     });
   </script>
 </body>
