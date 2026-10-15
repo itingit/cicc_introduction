@@ -188,7 +188,7 @@
       display: block;
     }
 
-    /* 2. 圖片直接全螢幕滿版展示 (無邊框、自適應最大化) */
+    /* 圖片直接全螢幕滿版展示 (無邊框、自適應最大化) */
     .image-fullscreen-view {
       width: 100%;
       height: 100%;
@@ -245,7 +245,7 @@
       </div>
     </div>
 
-    <!-- 頂部各頁面切換選單 -->
+    <!-- 頂部各頁面切換選單 (已移除 CICC Score，並將 Case practice 改為 Case Practice) -->
     <nav class="nav-menu">
       <a class="nav-item active" data-target="panel-what-is-cicc">
         <span class="nav-icon">💡</span>
@@ -255,17 +255,13 @@
         <span class="nav-icon">🕹️</span>
         <span>CICC Flow</span>
       </a>
-      <a class="nav-item" data-target="panel-score">
-        <span class="nav-icon">📊</span>
-        <span>CICC Score</span>
-      </a>
       <a class="nav-item" data-target="panel-cases">
         <span class="nav-icon">📋</span>
         <span>CICC Cases</span>
       </a>
       <a class="nav-item" data-target="panel-practice">
         <span class="nav-icon">🏁</span>
-        <span>Case practice</span>
+        <span>Case Practice</span>
       </a>
     </nav>
   </header>
@@ -285,19 +281,14 @@
       <iframe src="cicc.html" class="content-frame" title="CICC Flow Adventure"></iframe>
     </section>
 
-    <!-- 3. CICC Score (cicc_score.html) -->
-    <section id="panel-score" class="content-panel">
-      <iframe src="cicc_score.html" class="content-frame" title="CICC Score Calculator"></iframe>
-    </section>
-
-    <!-- 4. CICC Cases (第 2 張圖：直接滿版全螢幕) -->
+    <!-- 3. CICC Cases (第 2 張圖：直接滿版全螢幕) -->
     <section id="panel-cases" class="content-panel">
       <div class="image-fullscreen-view">
         <img src="cicc_cases.png" alt="CICC Cases in 2026">
       </div>
     </section>
 
-    <!-- 5. Case practice (cicc_26003.html) -->
+    <!-- 4. Case Practice (cicc_26003.html) -->
     <section id="panel-practice" class="content-panel">
       <iframe src="cicc_26003.html" class="content-frame" title="CICC Case Practice CICC-26003"></iframe>
     </section>
@@ -305,7 +296,7 @@
   </main>
 
   <script>
-    // 1. 點擊頁面任一處時自動進入全螢幕顯示 (符合瀏覽器互動安全政策)
+    // 點擊頁面任一處時自動進入全螢幕顯示 (符合瀏覽器互動安全政策)
     function activateFullscreen() {
       const docEl = document.documentElement;
       if (!document.fullscreenElement) {

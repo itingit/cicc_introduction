@@ -94,10 +94,10 @@
     /* Floating / Bouncing Mario animations */
     @keyframes marioBounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-10px); }
     }
     .animate-mario-bounce {
-      animation: marioBounce 0.4s infinite ease-in-out;
+      animation: marioBounce 0.35s infinite ease-in-out;
     }
     @keyframes coinSpin {
       0% { transform: scaleX(1); }
@@ -126,11 +126,11 @@
     <header class="w-full bg-[#1e1c18]/90 backdrop-blur border-b-4 border-black text-white px-8 py-3.5 z-50 shadow-lg">
       <div class="w-full flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="w-11 h-11 bg-red-600 rounded border-2 border-white flex items-center justify-center font-pixel text-yellow-300 text-xl shadow">
+          <div class="w-11 h-11 bg-emerald-600 rounded border-2 border-white flex items-center justify-center font-pixel text-yellow-300 text-xl shadow">
             M
           </div>
           <h1 class="font-pixel text-xl text-yellow-400 tracking-wider flex items-center gap-3">
-            CICC 升級流程 <span class="text-sm bg-red-600 px-2.5 py-0.5 rounded text-white font-mono">WORLD 8-D</span>
+            CICC 升級流程 <span class="text-sm bg-emerald-600 px-2.5 py-0.5 rounded text-white font-mono">WORLD 8-D</span>
           </h1>
         </div>
 
@@ -315,7 +315,7 @@
                 <h3 class="font-extrabold text-xl tracking-wide text-yellow-300">★ CICC 案件正式立案</h3>
               </div>
             </div>
-            <p class="text-base text-red-50 font-bold mt-2 leading-relaxed bg-red-700/80 p-2 rounded border-2 border-red-400">
+            <p class="text-base text-red-50 font-bold mt-2 leading-relaxed bg-red-700/80 p-2.5 rounded border-2 border-red-400">
               成立專案應變指揮小組，全面提速資源響應。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
@@ -331,7 +331,7 @@
                 <span class="bg-blue-100 text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded border-2 border-blue-300">MAIL BLAST</span>
               </div>
             </div>
-            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2 rounded border-2 border-slate-300">
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2.5 rounded border-2 border-slate-300">
               同步對齊利害關係人，透明化事件狀態與應變窗口。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
@@ -368,30 +368,20 @@
             </div>
           </div>
 
-          <!-- Mario Active Pixel Sprite -->
-          <div id="mario-character" class="absolute z-30 transition-all duration-500 ease-out flex flex-col items-center" style="bottom: 20px; left: 6%;">
+          <!-- Mario Active Pixel Sprite (全新奔跑主角形象) -->
+          <div id="mario-character" class="absolute z-30 transition-all duration-[850ms] ease-out flex flex-col items-center" style="bottom: 16px; left: 6%;">
             <div id="mario-speech" class="opacity-0 transition-opacity duration-300 bg-white border-2 border-black rounded px-2.5 py-1 text-sm font-bold text-slate-900 shadow-md mb-1 whitespace-nowrap">
               Let's-a Go!
             </div>
 
-            <div id="mario-sprite-box" class="w-11 h-14 relative drop-shadow-md">
-              <svg viewBox="0 0 16 20" class="w-full h-full">
-                <rect x="3" y="1" width="7" height="2" fill="#e52521"/>
-                <rect x="2" y="3" width="11" height="2" fill="#e52521"/>
-                <rect x="2" y="5" width="3" height="3" fill="#6c3b16"/>
-                <rect x="5" y="5" width="2" height="2" fill="#ffd099"/>
-                <rect x="7" y="5" width="1" height="2" fill="#000000"/>
-                <rect x="8" y="5" width="4" height="2" fill="#ffd099"/>
-                <rect x="5" y="7" width="6" height="2" fill="#000000"/>
-                <rect x="4" y="9" width="8" height="2" fill="#e52521"/>
-                <rect x="2" y="10" width="3" height="4" fill="#e52521"/>
-                <rect x="11" y="10" width="3" height="4" fill="#e52521"/>
-                <rect x="4" y="11" width="8" height="5" fill="#0026e6"/>
-                <rect x="5" y="12" width="1" height="1" fill="#ffe600"/>
-                <rect x="10" y="12" width="1" height="1" fill="#ffe600"/>
-                <rect x="3" y="16" width="4" height="2" fill="#6c3b16"/>
-                <rect x="9" y="16" width="4" height="2" fill="#6c3b16"/>
-              </svg>
+            <div id="mario-sprite-box" class="w-[64px] h-[86px] relative flex items-center justify-center drop-shadow-md transition-transform duration-200">
+              <img
+                src="Code_Generated_Image (2).png"
+                alt="Running Character"
+                onerror="this.onerror=null; this.src='Code_Generated_Image (2).gif';"
+                class="w-full h-full object-contain pointer-events-none"
+                style="image-rendering: pixelated;"
+              />
             </div>
           </div>
 
@@ -611,6 +601,7 @@
 
     const audio = new RetroAudioEngine();
 
+    // 嚴格線性向右遞進的 7 個階段座標
     const FLOW_NODES = {
       0: {
         id: 'node-0',
@@ -622,35 +613,35 @@
       1: {
         id: 'node-1',
         title: '<D1-D2> 問題識別與派案',
-        marioX: '28%',
+        marioX: '19%',
         speech: '🤔 進行問題分類...',
         score: 2500
       },
       2: {
         id: 'node-2',
         title: '<D3> 資訊彙整與風險評估',
-        marioX: '52%',
+        marioX: '33%',
         speech: '🍄 吃顆蘑菇彙整評估！',
         score: 5000
       },
       3: {
         id: 'node-3',
         title: '符合 CICC 升級門檻？',
-        marioX: '74%',
+        marioX: '48%',
         speech: '❓ 是否觸發升級門檻？',
         score: 7500
       },
       4: {
         id: 'node-4',
         title: '★ CICC 案件正式立案',
-        marioX: '35%',
+        marioX: '62%',
         speech: '⭐ 無敵星星！CICC正式立案！',
         score: 12000
       },
       5: {
         id: 'node-5',
         title: '發送 CICC 升級公告郵件',
-        marioX: '65%',
+        marioX: '76%',
         speech: '🕊️ 發送全體公告信件！',
         score: 16000
       },
@@ -672,6 +663,7 @@
     let activeZoomedId = null;
 
     const marioEl = document.getElementById('mario-character');
+    const marioSpriteBox = document.getElementById('mario-sprite-box');
     const speechEl = document.getElementById('mario-speech');
     const hudScore = document.getElementById('hud-score');
     const hudCoins = document.getElementById('hud-coins');
@@ -686,7 +678,6 @@
     const finishFlag = document.getElementById('finish-flag');
     const zoomFocusStage = document.getElementById('zoom-focus-stage');
 
-    // 完美置中克隆放大
     function toggleZoomNode(nodeEl) {
       if (activeZoomedId === nodeEl.id) {
         closeZoom();
@@ -694,10 +685,8 @@
         activeZoomedId = nodeEl.id;
         zoomFocusStage.innerHTML = '';
         
-        // 深度複製該卡片內容，使其脫離原本 Grid 排版束縛
         const clone = nodeEl.cloneNode(true);
         clone.id = 'zoomed-clone-card';
-        // 移除原有 hover 動畫與錨點
         clone.classList.remove('hover:scale-102', 'cursor-pointer');
         const pin = clone.querySelector('.mario-spot');
         if (pin) pin.remove();
@@ -714,10 +703,10 @@
       zoomFocusStage.innerHTML = '';
     }
 
-    // 點擊置中的放大卡片本身即可關閉
     zoomFocusStage.addEventListener('click', closeZoom);
 
     function updateUIForStep(stepIdx, triggerAudio = true) {
+      const prevStepIdx = currentStepIndex;
       const nodeKey = MAIN_PATH[stepIdx];
       const nodeData = FLOW_NODES[nodeKey];
 
@@ -730,9 +719,17 @@
         activeCard.classList.add('ring-4', 'ring-yellow-400', 'scale-105');
       }
 
+      // 控制角色朝向
+      if (stepIdx < prevStepIdx) {
+        marioSpriteBox.style.transform = 'scaleX(-1)';
+      } else {
+        marioSpriteBox.style.transform = 'scaleX(1)';
+      }
+
+      // 平滑奔跑
       marioEl.style.left = nodeData.marioX;
       marioEl.classList.add('animate-mario-bounce');
-      setTimeout(() => marioEl.classList.remove('animate-mario-bounce'), 500);
+      setTimeout(() => marioEl.classList.remove('animate-mario-bounce'), 850);
 
       speechEl.innerText = nodeData.speech;
       speechEl.classList.remove('opacity-0');
@@ -763,17 +760,19 @@
 
     function goToStep(idx) {
       if (idx >= 0 && idx < MAIN_PATH.length) {
-        currentStepIndex = idx;
-        updateUIForStep(currentStepIndex);
+        const nextIdx = idx;
+        updateUIForStep(nextIdx);
+        currentStepIndex = nextIdx;
       }
     }
 
     function restartGame() {
       closeZoom();
       stopAutoPlay();
-      currentStepIndex = 0;
+      marioSpriteBox.style.transform = 'scaleX(1)';
       userCoins = 3;
       finishFlag.style.top = '4px';
+      currentStepIndex = 0;
       updateUIForStep(0);
       audio.playJump();
     }
@@ -844,7 +843,6 @@
       speechEl.classList.remove('opacity-0');
     });
 
-    // 點擊原卡片觸發置中放大
     Object.keys(FLOW_NODES).forEach(key => {
       const nodeObj = FLOW_NODES[key];
       const el = document.getElementById(nodeObj.id);
@@ -860,7 +858,6 @@
       }
     });
 
-    // 點擊背景空白處關閉放大
     document.getElementById('stage-arena').addEventListener('click', (e) => {
       if (!e.target.closest('.flow-node') && !e.target.closest('#zoom-focus-stage')) {
         closeZoom();
