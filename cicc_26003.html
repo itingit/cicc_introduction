@@ -1575,7 +1575,7 @@
       }
 
       if (resetPos) {
-        marioEl.style.left = '20px';
+        marioEl.style.left = `${getStationX('impact')}px`;
         marioEl.style.bottom = '38px';
       }
       updateTotals();
@@ -1608,7 +1608,7 @@
 
     window.addEventListener('load', () => {
       resetAll(true);
-      marioEl.style.left = `${getStationX('impact') - 30}px`;
+      marioEl.style.left = `${getStationX('impact')}px`;
     });
   </script>
 </body>
