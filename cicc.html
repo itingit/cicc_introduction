@@ -6,7 +6,7 @@
   <title>CICC 升級流程 - 瑪利歐互動冒險闖關</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;600;800;900&family=VT323&display=swap" rel="stylesheet">
   <style>
     .font-pixel {
@@ -71,14 +71,14 @@
       box-shadow: inset 0 8px 0 #00e000;
     }
 
-    /* 中央獨立聚焦容器：保證不被父層剪裁、完美置中、四周無損 */
+    /* 中央獨立聚焦容器 */
     #zoom-focus-stage {
       position: absolute;
       top: 45%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(1.75);
+      transform: translate(-50%, -50%) scale(1.65);
       z-index: 60;
-      width: 420px;
+      width: 440px;
       cursor: zoom-out;
       pointer-events: auto;
       filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
@@ -88,31 +88,74 @@
 
     @keyframes zoomPopCenter {
       0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-      100% { transform: translate(-50%, -50%) scale(1.75); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.65); opacity: 1; }
     }
 
-    /* Floating / Bouncing Mario animations */
-    @keyframes marioBounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+    /* 頂磚塊小跳躍 */
+    @keyframes marioHitBlock {
+      0% { transform: translateY(0); }
+      40% { transform: translateY(-46px); }
+      100% { transform: translateY(0); }
     }
-    .animate-mario-bounce {
-      animation: marioBounce 0.35s infinite ease-in-out;
+    .animate-hit-block {
+      animation: marioHitBlock 0.5s ease-out;
     }
-    @keyframes coinSpin {
-      0% { transform: scaleX(1); }
-      50% { transform: scaleX(0.15); }
-      100% { transform: scaleX(1); }
+
+    /* 明確飛越水管的拋物線軌跡（起跳 -> 越過水管正上方 -> 落在右側） */
+    @keyframes marioLeapOverPipeClean {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(40px, -80px); }
+      50% { transform: translate(80px, -95px); }  /* 完全騰空於水管正上方 */
+      75% { transform: translate(115px, -75px); }
+      100% { transform: translate(145px, 0); }    /* 穩穩落在水管右側地面 */
     }
-    .animate-coin {
-      animation: coinSpin 0.7s infinite linear;
+    .animate-leap-clean {
+      animation: marioLeapOverPipeClean 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
     }
-    @keyframes questionBlockGlow {
+
+    /* 踢走蘑菇怪飛出場外動畫 */
+    @keyframes kickGoombaAway {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+      30% { transform: translate(50px, -70px) scale(0.9) rotate(180deg); }
+      100% { transform: translate(360px, -160px) scale(0.4) rotate(720deg); opacity: 0; }
+    }
+    .animate-kick-goomba {
+      animation: kickGoombaAway 0.65s forwards ease-out;
+    }
+
+    /* 頂磚塊彈金幣動畫 */
+    @keyframes coinPopUp {
+      0% { transform: translate(-50%, 0) scale(0.5); opacity: 1; }
+      50% { transform: translate(-50%, -60px) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -85px) scale(0.9); opacity: 0; }
+    }
+    .animate-coin-pop {
+      animation: coinPopUp 0.65s forwards ease-out;
+    }
+
+    /* 平常食人花上下探頭循環動畫 */
+    @keyframes piranhaMove {
+      0%, 100% { transform: translateY(38px); }
+      40%, 60% { transform: translateY(-38px); }
+    }
+    .animate-piranha-bite {
+      animation: piranhaMove 2.4s infinite ease-in-out;
+    }
+
+    /* 食人花受驚縮進水管深處的類別 */
+    .piranha-retreat {
+      animation: none !important;
+      transform: translateY(45px) !important;
+      transition: transform 0.25s ease-in !important;
+    }
+
+    /* 經典問號磚閃爍效果 */
+    @keyframes qblockShine {
       0%, 100% { filter: brightness(100%); }
-      50% { filter: brightness(125%); }
+      50% { filter: brightness(130%); }
     }
-    .animate-qblock {
-      animation: questionBlockGlow 1.2s infinite ease-in-out;
+    .animate-retro-qblock {
+      animation: qblockShine 1.1s infinite steps(2, start);
     }
   </style>
 </head>
@@ -140,7 +183,7 @@
             <span id="hud-score" class="text-white tracking-widest text-base">004200</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="inline-block w-3.5 h-5 bg-yellow-400 rounded-sm animate-coin border border-black"></span>
+            <span class="inline-block w-3.5 h-5 bg-yellow-400 rounded-sm border border-black"></span>
             <span class="text-yellow-300 text-base">×</span>
             <span id="hud-coins" class="text-white text-base">03</span>
           </div>
@@ -167,7 +210,7 @@
     <!-- Main Content Stage -->
     <main class="flex-1 w-full px-8 py-3.5 flex flex-col justify-between gap-3 overflow-hidden relative">
       <!-- Action Controls Bar -->
-      <div class="bg-blue-900/80 px-6 py-2.5 rounded-lg border-2 border-black flex items-center justify-between shadow">
+      <div class="bg-blue-900/80 px-6 py-2.5 rounded-lg border-2 border-black flex items-center justify-between shadow z-10">
         <div class="flex items-center gap-3">
           <span class="font-pixel text-sm text-yellow-300">模式:</span>
           <button id="btn-mode-manual" class="nes-btn px-4 py-1 text-sm font-bold rounded bg-yellow-400 text-black border-2 border-black">手動闖關</button>
@@ -182,7 +225,7 @@
       <!-- Retro Interactive Stage Area -->
       <div id="stage-arena" class="relative flex-1 bg-gradient-to-b from-[#5c94fc] via-[#85b5ff] to-[#a0c8ff] rounded-xl border-4 border-black overflow-hidden shadow-2xl flex flex-col justify-between">
 
-        <!-- 獨立正中央無損放大層（點選 Stage 時掛載） -->
+        <!-- 獨立正中央無損放大層 -->
         <div id="zoom-focus-stage" class="hidden"></div>
 
         <!-- Background Pixel Elements -->
@@ -199,7 +242,7 @@
               <path d="M25,35 H75 Q88,35 88,23 Q88,11 75,11 Q70,0 50,0 Q30,0 25,11 Q12,11 12,23 Q12,35 25,35 Z" fill="#ffffff"/>
             </svg>
           </div>
-          <div class="absolute bottom-20 left-0 right-0 h-32 flex justify-around items-end opacity-75">
+          <div class="absolute bottom-28 left-0 right-0 h-32 flex justify-around items-end opacity-75">
             <div class="w-60 h-28 bg-emerald-600 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800"></div>
             <div class="w-80 h-36 bg-emerald-500 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800 -mx-12"></div>
             <div class="w-56 h-24 bg-emerald-600 rounded-t-full border-t-4 border-l-4 border-r-4 border-emerald-800"></div>
@@ -209,10 +252,10 @@
         <!-- Interactive Flowchart Nodes Layer (Top Row: Nodes 0-3) -->
         <div class="relative z-10 px-6 pt-5 grid grid-cols-4 gap-5 items-stretch">
           
-          <!-- Node 0: 客戶客訴 -->
+          <!-- Node 0: 客戶客訴 (STAGE 01) -->
           <div id="node-0" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black text-center relative flex flex-col justify-between">
             <div class="absolute -top-3.5 left-4 bg-red-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
-              START 01
+              STAGE 01
             </div>
             <div>
               <div class="my-1 flex items-center justify-center gap-2">
@@ -227,7 +270,7 @@
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2 transition-all"></div>
           </div>
 
-          <!-- Node 1: <D1-D2> 問題識別與派案 -->
+          <!-- Node 1: <D1-D2> 問題識別與派案 (STAGE 02) -->
           <div id="node-1" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div class="absolute -top-3.5 left-4 bg-amber-500 text-black font-pixel text-xs px-2.5 py-1 rounded shadow">
               STAGE 02
@@ -253,7 +296,7 @@
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
           </div>
 
-          <!-- Node 2: <D3> 資訊彙整與風險評估 -->
+          <!-- Node 2: <D3> 資訊彙整與風險評估 (STAGE 03) -->
           <div id="node-2" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div class="absolute -top-3.5 left-4 bg-blue-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
               STAGE 03
@@ -261,7 +304,7 @@
             <div>
               <div class="flex items-center justify-between">
                 <span class="font-pixel text-sm text-blue-800 font-bold">&lt;D3&gt;</span>
-                <div class="w-7 h-7 bg-yellow-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-black font-bold animate-qblock">?</div>
+                <div class="w-7 h-7 bg-yellow-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-black font-bold">?</div>
               </div>
               <h3 class="font-extrabold text-xl text-gray-950 mt-1 tracking-tight">資訊彙整與風險評估</h3>
               <div class="mt-1.5 bg-blue-50 border-2 border-blue-200 rounded px-2.5 py-0.5 text-sm text-blue-900">
@@ -274,7 +317,7 @@
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
           </div>
 
-          <!-- Node 3: 升級決策門檻 (Decision) -->
+          <!-- Node 3: 升級決策門檻 (DECISION 04) -->
           <div id="node-3" class="flow-node nes-box bg-yellow-50 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div class="absolute -top-3.5 left-4 bg-purple-600 text-white font-pixel text-xs px-2.5 py-1 rounded shadow">
               DECISION 04
@@ -304,7 +347,7 @@
 
         <!-- Escalation Milestones Bar (Bottom Row Nodes: 4-6) -->
         <div class="relative z-10 px-6 pb-3 grid grid-cols-3 gap-5 items-stretch">
-          <!-- Node 4: CICC 案件正式立案 -->
+          <!-- Node 4: CICC 案件正式立案 (STAGE 05) -->
           <div id="node-4" class="flow-node nes-box bg-red-600 text-white rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div class="absolute -top-3.5 right-4 bg-yellow-400 text-black font-pixel text-xs px-2.5 py-1 rounded shadow flex items-center gap-1.5">
               <span>★</span> SUPER STAR
@@ -315,13 +358,13 @@
                 <h3 class="font-extrabold text-xl tracking-wide text-yellow-300">★ CICC 案件正式立案</h3>
               </div>
             </div>
-            <p class="text-base text-red-50 font-bold mt-2 leading-relaxed bg-red-700/80 p-2.5 rounded border-2 border-red-400">
+            <p class="text-base text-red-50 font-bold mt-2 leading-relaxed bg-red-700/80 p-2 rounded border-2 border-red-400">
               成立專案應變指揮小組，全面提速資源響應。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
           </div>
 
-          <!-- Node 5: 發送 CICC 升級公告郵件 -->
+          <!-- Node 5: 發送 CICC 升級公告郵件 (STAGE 06 / MAIL BLAST) -->
           <div id="node-5" class="flow-node nes-box bg-white/95 rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between">
@@ -331,13 +374,13 @@
                 <span class="bg-blue-100 text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded border-2 border-blue-300">MAIL BLAST</span>
               </div>
             </div>
-            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2.5 rounded border-2 border-slate-300">
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2 rounded border-2 border-slate-300">
               同步對齊利害關係人，透明化事件狀態與應變窗口。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
           </div>
 
-          <!-- Node 6: 跨部門支援與終點通關 (Goal Castle) -->
+          <!-- Node 6: 跨部門支援與終點通關 (STAGE 07) -->
           <div id="node-6" class="flow-node nes-box bg-emerald-700 text-white rounded-lg p-4 cursor-pointer hover:scale-102 transition-all duration-200 border-4 border-black relative flex flex-col justify-between">
             <div class="absolute -top-3.5 right-4 bg-yellow-300 text-emerald-950 font-pixel text-xs px-2.5 py-1 rounded">
               FLAG POLE 🚩
@@ -354,28 +397,77 @@
           </div>
         </div>
 
-        <!-- Interactive Animated Stage Floor (Mario Walkway) -->
-        <div class="relative w-full h-28 pixel-ground flex items-end justify-between px-10 pb-2.5 overflow-hidden z-20">
+        <!-- Interactive Animated Stage Floor (跑道區塊：三大關卡精準對應至 STAGE 02, DECISION 04 與 MAIL BLAST) -->
+        <div class="relative w-full h-32 pixel-ground flex items-end justify-between px-10 pb-2.5 overflow-visible z-30">
           
-          <!-- Left Green Warp Pipe -->
-          <div id="pipe-regular" class="relative z-10 flex flex-col items-center cursor-pointer group" title="常規處理程序 (SW/SBU/NPF 或 無需升級)">
+          <!-- 常規分流水管 (最左側 4%) -->
+          <div id="pipe-regular" class="relative z-30 flex flex-col items-center cursor-pointer group" title="常規處理程序 (SW/SBU/NPF 或 無需升級)">
             <div class="text-xs font-pixel text-yellow-300 bg-black/80 px-2 py-0.5 rounded mb-1 hidden group-hover:block transition">
               常規處理水管
             </div>
             <div class="w-16 h-6 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-700 border-2 border-black rounded-t shadow"></div>
-            <div class="w-12 h-12 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-800 border-x-2 border-black flex items-center justify-center">
+            <div class="w-12 h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-800 border-x-2 border-black flex items-center justify-center">
               <span class="text-xs font-pixel text-white/80">8D</span>
             </div>
           </div>
 
-          <!-- Mario Active Pixel Sprite (全新奔跑主角形象) -->
-          <div id="mario-character" class="absolute z-30 transition-all duration-[850ms] ease-out flex flex-col items-center" style="bottom: 16px; left: 6%;">
-            <div id="mario-speech" class="opacity-0 transition-opacity duration-300 bg-white border-2 border-black rounded px-2.5 py-1 text-sm font-bold text-slate-900 shadow-md mb-1 whitespace-nowrap">
-              Let's-a Go!
+          <!-- 關卡 1：頂磚塊掉金幣【對應 STAGE 02】(位置約 21%) -->
+          <div id="action-block-zone" class="absolute z-30 flex flex-col items-center" style="left: 21%; bottom: 82px;">
+            <div id="popup-coin" class="hidden absolute font-pixel text-yellow-300 text-2xl font-bold drop-shadow-md">🪙</div>
+            <div id="interactive-qblock" class="w-11 h-11 bg-[#fc9838] border-[3px] border-black flex items-center justify-center relative shadow-[inset_-3px_-3px_0px_#802a00,inset_3px_3px_0px_#ffcca0] cursor-pointer animate-retro-qblock transition-transform duration-100">
+              <span class="font-pixel text-base text-black font-extrabold">?</span>
+              <div class="absolute top-0.5 left-0.5 w-1 h-1 bg-black"></div>
+              <div class="absolute top-0.5 right-0.5 w-1 h-1 bg-black"></div>
+              <div class="absolute bottom-0.5 left-0.5 w-1 h-1 bg-black"></div>
+              <div class="absolute bottom-0.5 right-0.5 w-1 h-1 bg-black"></div>
             </div>
+          </div>
 
-            <div id="mario-sprite-box" class="w-[64px] h-[86px] relative flex items-center justify-center drop-shadow-md transition-transform duration-200">
+          <!-- 關卡 2：跳過食人花水管【對應 DECISION 04】(水管位置 50%) -->
+          <div id="piranha-pipe-zone" class="absolute z-20 flex flex-col items-center" style="left: 50%; bottom: 10px;">
+            <div id="piranha-plant" class="w-10 h-10 relative animate-piranha-bite" style="margin-bottom: -16px; z-index: 10;">
+              <svg viewBox="0 0 16 16" class="w-full h-full">
+                <rect x="4" y="1" width="8" height="6" fill="#e52521"/>
+                <circle cx="6" cy="3" r="1" fill="#ffffff"/>
+                <circle cx="10" cy="4" r="1.2" fill="#ffffff"/>
+                <polygon points="5,7 6,5 7,7" fill="#ffffff"/>
+                <polygon points="9,7 10,5 11,7" fill="#ffffff"/>
+                <polygon points="5,8 6,10 7,8" fill="#ffffff"/>
+                <polygon points="9,8 10,10 11,8" fill="#ffffff"/>
+                <rect x="7" y="10" width="2" height="6" fill="#00a800"/>
+                <rect x="4" y="12" width="3" height="2" fill="#00a800"/>
+                <rect x="9" y="12" width="3" height="2" fill="#00a800"/>
+              </svg>
+            </div>
+            <div class="w-16 h-7 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-700 border-2 border-black rounded-t shadow z-20"></div>
+            <div class="w-12 h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-800 border-x-2 border-black z-20"></div>
+          </div>
+
+          <!-- 關卡 3：踢飛板栗蘑菇怪【對應 MAIL BLAST】(位置約 75%) -->
+          <div id="goomba-enemy" class="absolute z-30 transition-all duration-300" style="left: 75%; bottom: 18px;">
+            <div class="w-10 h-10 relative flex items-center justify-center cursor-pointer">
+              <svg viewBox="0 0 16 16" class="w-full h-full drop-shadow-md">
+                <rect x="5" y="1" width="6" height="3" fill="#a04000"/>
+                <rect x="3" y="4" width="10" height="4" fill="#a04000"/>
+                <rect x="1" y="8" width="14" height="3" fill="#a04000"/>
+                <rect x="4" y="11" width="8" height="2" fill="#ffcca0"/>
+                <rect x="3" y="6" width="3" height="1" fill="#000000"/>
+                <rect x="10" y="6" width="3" height="1" fill="#000000"/>
+                <rect x="4" y="7" width="2" height="3" fill="#ffffff"/>
+                <rect x="10" y="7" width="2" height="3" fill="#ffffff"/>
+                <rect x="5" y="8" width="1" height="2" fill="#000000"/>
+                <rect x="10" y="8" width="1" height="2" fill="#000000"/>
+                <rect x="2" y="13" width="4" height="3" fill="#000000"/>
+                <rect x="10" y="13" width="4" height="3" fill="#000000"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 主角奔跑精靈 (最高層級 z-40，無氣泡文字) -->
+          <div id="mario-character" class="absolute z-40 transition-all duration-[850ms] ease-out flex flex-col items-center" style="bottom: 16px; left: 6%;">
+            <div id="mario-sprite-box" class="w-[66px] h-[90px] relative flex items-center justify-center drop-shadow-lg transition-transform duration-200">
               <img
+                id="hero-img"
                 src="Code_Generated_Image (2).png"
                 alt="Running Character"
                 onerror="this.onerror=null; this.src='Code_Generated_Image (2).gif';"
@@ -385,32 +477,18 @@
             </div>
           </div>
 
-          <!-- Question Blocks Row in Middle Floor -->
-          <div class="flex items-center gap-4 z-10 mb-5">
-            <div class="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-950 font-bold shadow animate-qblock">
-              ?
-            </div>
-            <div class="w-9 h-9 bg-[#b84418] border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-200 shadow">
-              #
-            </div>
-            <div class="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-pixel text-sm text-amber-950 font-bold shadow animate-qblock">
-              ?
-            </div>
-          </div>
-
-          <!-- Right Side: Flag Pole & Finish Goal -->
-          <div id="flagpole-container" class="relative z-10 flex flex-col items-center">
-            <div class="relative w-12 h-24 flex justify-center">
-              <div class="w-2 h-full bg-slate-300 border-x-2 border-black"></div>
-              <div class="absolute -top-3 w-5 h-5 bg-yellow-400 rounded-full border-2 border-black shadow"></div>
-              <div id="finish-flag" class="absolute top-1 left-2 bg-red-600 text-yellow-300 border border-black px-2 py-0.5 font-pixel text-[9px] font-bold rounded-r transition-all duration-700 shadow">
-                CICC!
-              </div>
-              <div class="absolute -bottom-1 -right-6 text-xl animate-bounce" title="跨組織支援團隊">
-                🍄
+          <!-- 終點旗座 (CICC 旗幟永久置頂於螢幕最高層級 90%) -->
+          <div id="flagpole-container" class="relative z-50 flex flex-col items-center" style="margin-right: 15px;">
+            <div class="relative w-14 h-32 flex justify-center">
+              <div class="w-2.5 h-full bg-slate-300 border-x-2 border-black"></div>
+              <div class="absolute -top-3.5 w-6 h-6 bg-yellow-400 rounded-full border-2 border-black shadow z-50"></div>
+              
+              <!-- CICC 旗幟 (永久保持在旗座最頂端，絕對不滑動、位於螢幕最上層) -->
+              <div id="finish-flag" class="absolute -top-2 left-3 bg-red-600 text-yellow-300 border-2 border-black px-3 py-1 font-pixel text-xs font-bold rounded-r shadow-2xl z-50 flex items-center gap-1.5 whitespace-nowrap">
+                <span>★</span> CICC!
               </div>
             </div>
-            <div class="w-14 h-4 bg-[#963810] border-2 border-black rounded-sm shadow"></div>
+            <div class="w-16 h-5 bg-[#963810] border-2 border-black rounded-sm shadow z-40"></div>
           </div>
 
         </div>
@@ -485,13 +563,13 @@
           const gain = this.ctx.createGain();
           osc.type = 'square';
           osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.16);
+          osc.stop(now + 0.19);
         } catch (e) {
           console.warn(e);
         }
@@ -508,36 +586,34 @@
           osc.type = 'sine';
           osc.frequency.setValueAtTime(987.77, now);
           osc.frequency.setValueAtTime(1318.51, now + 0.08);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.38);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.36);
+          osc.stop(now + 0.39);
         } catch (e) {
           console.warn(e);
         }
       }
 
-      playPowerup() {
+      playKick() {
         if (this.muted) return;
         this.init();
         if (!this.ctx) return;
         try {
-          const notes = [330, 392, 659, 523, 587, 784];
-          notes.forEach((freq, idx) => {
-            const now = this.ctx.currentTime + idx * 0.07;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq, now);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.1);
-          });
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.16);
         } catch (e) {
           console.warn(e);
         }
@@ -576,7 +652,7 @@
             { f: 783.99, d: 0.12 },
             { f: 1046.50, d: 0.25 },
             { f: 880.00, d: 0.15 },
-            { f: 1046.50, d: 0.4 }
+            { f: 1046.50, d: 0.45 }
           ];
           let offset = 0;
           melody.forEach(n => {
@@ -585,7 +661,7 @@
             const gain = this.ctx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(n.f, now);
-            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.setValueAtTime(0.25, now);
             gain.gain.linearRampToValueAtTime(0.01, now + n.d);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
@@ -601,55 +677,55 @@
 
     const audio = new RetroAudioEngine();
 
-    // 嚴格線性向右遞進的 7 個階段座標
+    // 重新校正 7 個階段位置，精準對應關卡挑戰：
+    // Stage 1 (0): 起步 6%
+    // Stage 2 (1): 頂磚 19% (磚塊於 21%)
+    // Stage 3 (2): 前進 32%
+    // Stage 4 (3): DECISION 04 水管前 43% (水管於 50%，飛越至 53%)
+    // Stage 5 (4): 立案 62%
+    // Stage 6 (5): MAIL BLAST 踢蘑菇怪 71% (怪於 75%)
+    // Stage 7 (6): 終點旗座 90%
     const FLOW_NODES = {
       0: {
         id: 'node-0',
         title: '客戶客訴',
         marioX: '6%',
-        speech: '🚨 客戶緊急回報！',
         score: 1000
       },
       1: {
         id: 'node-1',
         title: '<D1-D2> 問題識別與派案',
-        marioX: '19%',
-        speech: '🤔 進行問題分類...',
+        marioX: '19%', // 關卡 1：頂磚塊掉金幣【STAGE 02】
         score: 2500
       },
       2: {
         id: 'node-2',
         title: '<D3> 資訊彙整與風險評估',
-        marioX: '33%',
-        speech: '🍄 吃顆蘑菇彙整評估！',
+        marioX: '32%', // 平穩前行
         score: 5000
       },
       3: {
         id: 'node-3',
         title: '符合 CICC 升級門檻？',
-        marioX: '48%',
-        speech: '❓ 是否觸發升級門檻？',
+        marioX: '43%', // 關卡 2：跳過食人花水管【DECISION 04】（停在水管左側起跳）
         score: 7500
       },
       4: {
         id: 'node-4',
         title: '★ CICC 案件正式立案',
-        marioX: '62%',
-        speech: '⭐ 無敵星星！CICC正式立案！',
+        marioX: '62%', // 越過水管後平穩前行
         score: 12000
       },
       5: {
         id: 'node-5',
         title: '發送 CICC 升級公告郵件',
-        marioX: '76%',
-        speech: '🕊️ 發送全體公告信件！',
+        marioX: '71%', // 關卡 3：踢飛蘑菇怪【MAIL BLAST】
         score: 16000
       },
       6: {
         id: 'node-6',
         title: 'BEC / 主管層資源對齊與跨部門支援',
-        marioX: '90%',
-        speech: '🏆 STAGE CLEAR! 跨部門全員到位！',
+        marioX: '90%', // 抵達終點旗
         score: 25000
       }
     };
@@ -664,7 +740,6 @@
 
     const marioEl = document.getElementById('mario-character');
     const marioSpriteBox = document.getElementById('mario-sprite-box');
-    const speechEl = document.getElementById('mario-speech');
     const hudScore = document.getElementById('hud-score');
     const hudCoins = document.getElementById('hud-coins');
     const hudStage = document.getElementById('hud-stage-name');
@@ -675,8 +750,13 @@
     const soundIcon = document.getElementById('sound-icon');
     const btnManual = document.getElementById('btn-mode-manual');
     const btnAuto = document.getElementById('btn-mode-auto');
-    const finishFlag = document.getElementById('finish-flag');
     const zoomFocusStage = document.getElementById('zoom-focus-stage');
+    
+    // 闖關道具、怪物與食人花
+    const popupCoin = document.getElementById('popup-coin');
+    const interactiveQblock = document.getElementById('interactive-qblock');
+    const goombaEnemy = document.getElementById('goomba-enemy');
+    const piranhaPlant = document.getElementById('piranha-plant');
 
     function toggleZoomNode(nodeEl) {
       if (activeZoomedId === nodeEl.id) {
@@ -705,6 +785,64 @@
 
     zoomFocusStage.addEventListener('click', closeZoom);
 
+    // 三大關卡動作觸發邏輯
+    function triggerStageAdventureAction(stepIdx) {
+      marioSpriteBox.classList.remove('animate-hit-block', 'animate-leap-clean');
+      piranhaPlant.classList.remove('piranha-retreat');
+
+      if (stepIdx === 1) {
+        // 關卡 1：STAGE 02 -> 頂磚塊掉金幣
+        setTimeout(() => {
+          marioSpriteBox.classList.add('animate-hit-block');
+          setTimeout(() => {
+            audio.playCoin();
+            popupCoin.classList.remove('hidden');
+            popupCoin.classList.add('animate-coin-pop');
+            userCoins += 1;
+            hudCoins.innerText = String(userCoins).padStart(2, '0');
+            interactiveQblock.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+              interactiveQblock.style.transform = 'translateY(0)';
+              interactiveQblock.classList.remove('bg-[#fc9838]', 'animate-retro-qblock');
+              interactiveQblock.classList.add('bg-[#b84418]');
+              interactiveQblock.innerHTML = '<span class="font-pixel text-base text-amber-200 font-extrabold">#</span>';
+            }, 120);
+          }, 180);
+          setTimeout(() => {
+            popupCoin.classList.add('hidden');
+            popupCoin.classList.remove('animate-coin-pop');
+          }, 850);
+        }, 300);
+      } else if (stepIdx === 3) {
+        // 關卡 2：DECISION 04 -> 跳過食人花水管
+        setTimeout(() => {
+          piranhaPlant.classList.add('piranha-retreat');
+          setTimeout(() => {
+            audio.playJump();
+            marioSpriteBox.classList.add('animate-leap-clean');
+            setTimeout(() => {
+              piranhaPlant.classList.remove('piranha-retreat');
+            }, 900);
+          }, 240);
+        }, 350);
+      } else if (stepIdx === 5) {
+        // 關卡 3：STAGE 06 / MAIL BLAST -> 踢飛板栗蘑菇怪
+        setTimeout(() => {
+          marioSpriteBox.classList.add('animate-hit-block');
+          setTimeout(() => {
+            audio.playKick();
+            goombaEnemy.classList.add('animate-kick-goomba');
+          }, 180);
+        }, 300);
+      } else if (stepIdx === 6) {
+        // STAGE 07 -> 通關抵達終點旗
+        setTimeout(() => {
+          audio.playFanfare();
+          marioSpriteBox.classList.add('animate-hit-block');
+        }, 350);
+      }
+    }
+
     function updateUIForStep(stepIdx, triggerAudio = true) {
       const prevStepIdx = currentStepIndex;
       const nodeKey = MAIN_PATH[stepIdx];
@@ -719,41 +857,27 @@
         activeCard.classList.add('ring-4', 'ring-yellow-400', 'scale-105');
       }
 
-      // 控制角色朝向
+      // 角色朝向控制
       if (stepIdx < prevStepIdx) {
         marioSpriteBox.style.transform = 'scaleX(-1)';
       } else {
         marioSpriteBox.style.transform = 'scaleX(1)';
       }
 
-      // 平滑奔跑
+      // 平滑奔跑至 X 座標
       marioEl.style.left = nodeData.marioX;
-      marioEl.classList.add('animate-mario-bounce');
-      setTimeout(() => marioEl.classList.remove('animate-mario-bounce'), 850);
+      
+      // 觸發對應關卡特技動作
+      triggerStageAdventureAction(stepIdx);
 
-      speechEl.innerText = nodeData.speech;
-      speechEl.classList.remove('opacity-0');
-      clearTimeout(marioEl._speechTimeout);
-      marioEl._speechTimeout = setTimeout(() => speechEl.classList.add('opacity-0'), 2500);
-
-      if (triggerAudio) {
-        if (nodeKey === 0 || nodeKey === 1) audio.playJump();
-        else if (nodeKey === 2) audio.playCoin();
-        else if (nodeKey === 4) audio.playPowerup();
-        else if (nodeKey === 6) audio.playFanfare();
-        else audio.playJump();
+      if (triggerAudio && stepIdx !== 1 && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 6) {
+        audio.playJump();
       }
 
       userCoins++;
       hudCoins.innerText = String(userCoins).padStart(2, '0');
       hudScore.innerText = String(nodeData.score).padStart(6, '0');
       hudStage.innerText = `${stepIdx + 1}/${MAIN_PATH.length}`;
-
-      if (nodeKey === 6) {
-        finishFlag.style.top = '62px';
-      } else {
-        finishFlag.style.top = '4px';
-      }
 
       btnPrev.disabled = stepIdx === 0;
     }
@@ -770,8 +894,22 @@
       closeZoom();
       stopAutoPlay();
       marioSpriteBox.style.transform = 'scaleX(1)';
+      marioSpriteBox.classList.remove('animate-hit-block', 'animate-leap-clean');
+      piranhaPlant.classList.remove('piranha-retreat');
+      
+      // 重置磚塊與板栗怪
+      interactiveQblock.classList.add('bg-[#fc9838]', 'animate-retro-qblock');
+      interactiveQblock.classList.remove('bg-[#b84418]');
+      interactiveQblock.innerHTML = `
+        <span class="font-pixel text-base text-black font-extrabold">?</span>
+        <div class="absolute top-0.5 left-0.5 w-1 h-1 bg-black"></div>
+        <div class="absolute top-0.5 right-0.5 w-1 h-1 bg-black"></div>
+        <div class="absolute bottom-0.5 left-0.5 w-1 h-1 bg-black"></div>
+        <div class="absolute bottom-0.5 right-0.5 w-1 h-1 bg-black"></div>
+      `;
+      goombaEnemy.classList.remove('animate-kick-goomba');
+
       userCoins = 3;
-      finishFlag.style.top = '4px';
       currentStepIndex = 0;
       updateUIForStep(0);
       audio.playJump();
@@ -839,8 +977,6 @@
     document.getElementById('pipe-regular').addEventListener('click', () => {
       audio.playPipe();
       marioEl.style.left = '4%';
-      speechEl.innerText = '進入常規水管... 管道分流！';
-      speechEl.classList.remove('opacity-0');
     });
 
     Object.keys(FLOW_NODES).forEach(key => {

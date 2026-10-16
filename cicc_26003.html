@@ -6,11 +6,11 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>CICC 四大面向判斷評分 - 瑪利歐冒險篇 (Case: CICC-26003)</title>
   
-  <!-- Google Fonts: 復古像素與清晰字型 -->
+  <!-- Google Fonts: 復古像素與清晰中文字型 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
-  <!-- Font Awesome 穩定向量圖標庫，杜絕符號亂碼 -->
+  <!-- Font Awesome 穩定向量圖標庫 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
@@ -257,30 +257,6 @@
       border-color: #2ecc71;
     }
 
-    .btn-mission-complete {
-      display: none;
-      padding: 7px 14px;
-      background: linear-gradient(180deg, #ff4d4d, #b30000);
-      color: #fff;
-      border: 2px solid #fff;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 3px 0 #590000;
-      animation: completePulse 1s infinite alternate;
-      line-height: 1.3;
-      white-space: nowrap;
-    }
-    .btn-mission-complete.show {
-      display: inline-block !important;
-    }
-    @keyframes completePulse {
-      0% { box-shadow: 0 0 4px #ffcc00; }
-      100% { box-shadow: 0 0 16px #ff3300; }
-    }
-
     /* 遊戲關卡主畫面 */
     .stage-viewport {
       width: 100%;
@@ -471,6 +447,7 @@
       border-radius: 2px;
     }
 
+    /* 終點旗桿與城堡 */
     .castle-flag-area {
       position: absolute;
       right: 10px;
@@ -479,6 +456,52 @@
       align-items: flex-end;
       z-index: 11;
     }
+
+    /* 畫面最中央之大尺寸醒目成案圖框 */
+    .cicc-case-banner {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      background: linear-gradient(180deg, #d80000 0%, #750000 50%, #400000 100%);
+      color: #fff;
+      border: 5px solid #fcbc00;
+      border-radius: 16px;
+      padding: 18px 36px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      box-shadow: 0 0 0 6px #000, 0 0 35px rgba(255, 40, 40, 0.95), inset 0 0 14px rgba(255, 220, 0, 0.6);
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+      z-index: 60;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .cicc-case-banner.show {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 1;
+      animation: centerStampZoom 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
+    }
+    @keyframes centerStampZoom {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3) rotate(-6deg);
+      }
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) rotate(1deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      }
+    }
+
     .flagpole {
       width: 5px;
       height: 95px;
@@ -498,7 +521,7 @@
     }
     .cicc-flag {
       position: absolute;
-      top: 60px;
+      top: 68px; /* 初始位置：底端 */
       left: 5px;
       background: #fc3800;
       color: #fff;
@@ -507,11 +530,11 @@
       font-family: 'Press Start 2P', monospace;
       border: 1px solid #000;
       border-radius: 2px;
-      transition: top 0.5s ease;
+      transition: top 0.65s cubic-bezier(0.25, 1, 0.5, 1);
       font-weight: bold;
     }
 
-    /* 瑪利歐角色外觀（載入上傳之圖檔） */
+    /* 瑪利歐角色外觀 */
     #mario-character {
       position: absolute;
       bottom: 38px;
@@ -764,46 +787,15 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 全螢幕影片彈窗 */
-    .fullscreen-video-container {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 99999;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-    .fullscreen-video-container.show {
-      display: flex !important;
-    }
-    .fullscreen-video-container video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: contain;
-      background: #000;
-    }
-    .video-exit-tip {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      z-index: 100000;
-      background: rgba(0, 0, 0, 0.75);
-      border: 2px solid #fcbc00;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: 'Press Start 2P', monospace;
-      cursor: pointer;
-    }
-
     @media (max-width: 900px) {
       .options-row { grid-template-columns: 1fr; }
       .hud-criteria-box { font-size: 15px; }
       .station-sub { font-size: 13px; }
       .case-incident-desc { font-size: 16px; }
+      .cicc-case-banner {
+        font-size: 19px;
+        padding: 12px 20px;
+      }
     }
   </style>
 </head>
@@ -839,10 +831,6 @@
       </div>
 
       <div style="display:flex; align-items:center; gap:12px;">
-        <button id="btn-mission-complete" class="btn-mission-complete" onclick="startFullscreenEasterEgg()">
-          ★ MISSION COMPLETE ★ 點擊播放結尾影片
-        </button>
-
         <div class="master-total-pill normal" id="decision-box">
           <span class="total-title">總分：</span>
           <span class="total-score-val" id="calc-total">0</span>
@@ -965,6 +953,12 @@
           </div>
           <div class="warp-pipe"><div class="pipe-top"></div></div>
         </div>
+      </div>
+
+      <!-- 畫面最中央大尺寸醒目成案圖框 -->
+      <div class="cicc-case-banner" id="cicc-case-banner">
+        <i class="fa-solid fa-stamp" style="color:#fcbc00; font-size: 32px;"></i>
+        <span>正式成案 CICC-26003</span>
       </div>
 
       <!-- Castle & Flag Finish Line -->
@@ -1218,73 +1212,7 @@
     </div>
   </div>
 
-  <!-- Fullscreen Easter Egg Video Player -->
-  <div id="fullscreen-video-container" class="fullscreen-video-container">
-    <div class="video-exit-tip" onclick="exitFullscreenEasterEgg()">✕ 結束播放 (ESC)</div>
-    <video id="egg-mp4-video" playsinline preload="metadata">
-      <source src="demo.mp4" type="video/mp4">
-      您的瀏覽器不支援影片播放。
-    </video>
-  </div>
-
   <script>
-    const VIDEO_CLIP_CONFIG = {
-      START_TIME: 0,
-      END_TIME: Infinity
-    };
-
-    const fsContainer = document.getElementById('fullscreen-video-container');
-    const eggVideo = document.getElementById('egg-mp4-video');
-    const btnMissionComplete = document.getElementById('btn-mission-complete');
-
-    // 播放完影片時退出全螢幕並關閉播放器
-    eggVideo.addEventListener('ended', () => {
-      exitFullscreenEasterEgg();
-    });
-
-    eggVideo.addEventListener('timeupdate', () => {
-      if (eggVideo.currentTime >= VIDEO_CLIP_CONFIG.END_TIME) {
-        exitFullscreenEasterEgg();
-      }
-    });
-
-    function startFullscreenEasterEgg() {
-      fsContainer.classList.add('show');
-      eggVideo.currentTime = VIDEO_CLIP_CONFIG.START_TIME;
-
-      const elem = fsContainer;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(() => {});
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-      }
-
-      eggVideo.play().catch(e => {
-        console.warn("Auto-play error:", e);
-      });
-    }
-
-    function exitFullscreenEasterEgg() {
-      eggVideo.pause();
-      fsContainer.classList.remove('show');
-
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
-      }
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && fsContainer.classList.contains('show')) {
-        exitFullscreenEasterEgg();
-      }
-    });
-
     const scores = {
       impact: null,
       trend: null,
@@ -1549,24 +1477,29 @@
 
       if (total >= 12) {
         decisionBox.classList.add('escalate');
-        flagEl.style.top = '6px';
         critGte12.classList.add('active');
       } else if (total >= 8) {
         decisionBox.classList.add('director');
-        flagEl.style.top = '32px';
         crit8to11.classList.add('active');
       } else {
         decisionBox.classList.add('normal');
-        flagEl.style.top = '60px';
         critLt8.classList.add('active');
       }
 
-      // 當 4 個面向都作答完成時，才顯示 MISSION COMPLETE 按鈕
-      const allAnswered = dimensionOrder.every(d => scores[d] !== null);
-      if (allAnswered) {
-        btnMissionComplete.classList.add('show');
-      } else {
-        btnMissionComplete.classList.remove('show');
+      // 依已完成評分的面向數量，讓 CICC 旗幟循序漸進上升至旗桿頂端
+      // 0個: 68px(底端), 1個: 52px, 2個: 36px, 3個: 20px, 4個(全滿): 2px(到達終點頂端)
+      const answeredCount = dimensionOrder.filter(d => scores[d] !== null).length;
+      const flagPositions = [68, 52, 36, 20, 2];
+      flagEl.style.top = `${flagPositions[answeredCount]}px`;
+
+      // 4 個面向都評分完畢時在畫面正中央彈出大型醒目「正式成案 CICC-26003」圖框（不播放通關音效）
+      const bannerEl = document.getElementById('cicc-case-banner');
+      if (bannerEl) {
+        if (answeredCount === 4) {
+          bannerEl.classList.add('show');
+        } else {
+          bannerEl.classList.remove('show');
+        }
       }
     }
 
@@ -1605,9 +1538,6 @@
     }
 
     function resetAll(resetPos = true) {
-      exitFullscreenEasterEgg();
-      btnMissionComplete.classList.remove('show');
-
       dimensionOrder.forEach(dim => {
         scores[dim] = null;
         const activeCard = document.getElementById(`card-${dim}`);
@@ -1630,6 +1560,10 @@
           b.classList.remove('active');
         });
       });
+
+      // 隱藏成案圖框
+      const bannerEl = document.getElementById('cicc-case-banner');
+      if (bannerEl) bannerEl.classList.remove('show');
 
       // 重置卡片順序為 Impact, Trend, Urgency, Risk
       const container = document.querySelector('.matrix-section');
