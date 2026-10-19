@@ -101,13 +101,13 @@
       animation: marioHitBlock 0.5s ease-out;
     }
 
-    /* 明確飛越水管的拋物線軌跡（起跳 -> 越過水管正上方 -> 落在右側） */
+    /* 明確飛越水管的拋物線軌跡 */
     @keyframes marioLeapOverPipeClean {
       0% { transform: translate(0, 0); }
       25% { transform: translate(40px, -80px); }
-      50% { transform: translate(80px, -95px); }  /* 完全騰空於水管正上方 */
+      50% { transform: translate(80px, -95px); }
       75% { transform: translate(115px, -75px); }
-      100% { transform: translate(145px, 0); }    /* 穩穩落在水管右側地面 */
+      100% { transform: translate(145px, 0); }
     }
     .animate-leap-clean {
       animation: marioLeapOverPipeClean 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
@@ -165,7 +165,7 @@
   <!-- 1600x900 核心舞台 -->
   <div id="viewport-container">
 
-    <!-- Top Retro HUD Banner -->
+    <!-- Top Retro HUD Banner (新增 30% / 50% / 80% 快速音量調節區) -->
     <header class="w-full bg-[#1e1c18]/90 backdrop-blur border-b-4 border-black text-white px-8 py-3.5 z-50 shadow-lg">
       <div class="w-full flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -177,7 +177,7 @@
           </h1>
         </div>
 
-        <div class="flex items-center gap-8 font-pixel text-sm">
+        <div class="flex items-center gap-6 font-pixel text-sm">
           <div class="flex flex-col items-center">
             <span class="text-gray-400 text-xs">SCORE</span>
             <span id="hud-score" class="text-white tracking-widest text-base">004200</span>
@@ -192,14 +192,23 @@
             <span id="hud-stage-name" class="text-emerald-400 font-bold text-base">1/7</span>
           </div>
           
-          <div class="flex items-center gap-3 ml-3">
-            <button id="btn-sound" class="nes-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded text-xs font-pixel" title="切換音效">
+          <!-- 音效與音量控制面板 -->
+          <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded border border-white/20">
+            <button id="btn-sound" class="nes-btn px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black rounded text-xs font-pixel" title="靜音 / 開啟聲音">
               <span id="sound-icon">🔊</span>
             </button>
+            <div class="flex items-center gap-1 text-[11px] font-pixel">
+              <button id="vol-30" class="nes-btn px-2 py-0.5 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded">30%</button>
+              <button id="vol-50" class="nes-btn px-2 py-0.5 bg-yellow-400 text-black font-bold rounded">50%</button>
+              <button id="vol-80" class="nes-btn px-2 py-0.5 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded">80%</button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
             <button id="btn-fullscreen" class="nes-btn px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-pixel" title="切換全螢幕">
               ⛶
             </button>
-            <button id="btn-restart" class="nes-btn px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-pixel" title="重新開始">
+            <button id="btn-restart" class="nes-btn px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-pixel" title="重新開始">
               RESET
             </button>
           </div>
@@ -374,7 +383,7 @@
                 <span class="bg-blue-100 text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded border-2 border-blue-300">MAIL BLAST</span>
               </div>
             </div>
-            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2 rounded border-2 border-slate-300">
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2.5 rounded border-2 border-slate-300">
               同步對齊利害關係人，透明化事件狀態與應變窗口。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
@@ -397,7 +406,7 @@
           </div>
         </div>
 
-        <!-- Interactive Animated Stage Floor (跑道區塊：三大關卡精準對應至 STAGE 02, DECISION 04 與 MAIL BLAST) -->
+        <!-- Interactive Animated Stage Floor (跑道區塊) -->
         <div class="relative w-full h-32 pixel-ground flex items-end justify-between px-10 pb-2.5 overflow-visible z-30">
           
           <!-- 常規分流水管 (最左側 4%) -->
@@ -530,10 +539,16 @@
 
     document.addEventListener('fullscreenchange', applyScale);
 
+    // 復古音訊引擎：含 BGM 背景音與音效主音量控制
     class RetroAudioEngine {
       constructor() {
         this.ctx = null;
+        this.masterVolume = 0.5; // 預設 50%
         this.muted = false;
+        this.bgmOscs = [];
+        this.bgmGain = null;
+        this.bgmPlaying = false;
+        this.bgmInterval = null;
       }
 
       init() {
@@ -541,6 +556,9 @@
           const AudioContext = window.AudioContext || window.webkitAudioContext;
           if (AudioContext) {
             this.ctx = new AudioContext();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(this.muted ? 0 : this.masterVolume, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
           }
         }
         if (this.ctx && this.ctx.state === 'suspended') {
@@ -548,15 +566,73 @@
         }
       }
 
+      setVolume(val) {
+        this.masterVolume = val;
+        if (!this.ctx) return;
+        const targetVol = this.muted ? 0 : this.masterVolume;
+        this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+        this.masterGain.gain.linearRampToValueAtTime(targetVol, this.ctx.currentTime + 0.05);
+      }
+
       toggleMute() {
         this.muted = !this.muted;
+        this.init();
+        if (this.masterGain) {
+          const targetVol = this.muted ? 0 : this.masterVolume;
+          this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+          this.masterGain.gain.linearRampToValueAtTime(targetVol, this.ctx.currentTime + 0.05);
+        }
         return !this.muted;
       }
 
-      playJump() {
-        if (this.muted) return;
+      // 8-bit 背景音樂循環生成器
+      startBGM() {
+        if (this.bgmPlaying) return;
         this.init();
         if (!this.ctx) return;
+        this.bgmPlaying = true;
+
+        const melody = [
+          { f: 659.25, d: 0.14 }, { f: 659.25, d: 0.14 }, { f: 0, d: 0.14 }, { f: 659.25, d: 0.14 },
+          { f: 0, d: 0.14 }, { f: 523.25, d: 0.14 }, { f: 659.25, d: 0.28 }, { f: 783.99, d: 0.28 },
+          { f: 0, d: 0.28 }, { f: 392.00, d: 0.28 }, { f: 0, d: 0.28 },
+          { f: 523.25, d: 0.2 }, { f: 0, d: 0.1 }, { f: 392.00, d: 0.2 }, { f: 0, d: 0.1 },
+          { f: 329.63, d: 0.2 }, { f: 0, d: 0.1 }, { f: 440.00, d: 0.2 }, { f: 493.88, d: 0.2 },
+          { f: 466.16, d: 0.14 }, { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.18 }, { f: 659.25, d: 0.18 },
+          { f: 783.99, d: 0.18 }, { f: 880.00, d: 0.2 }, { f: 698.46, d: 0.14 }, { f: 783.99, d: 0.14 },
+          { f: 0, d: 0.14 }, { f: 659.25, d: 0.2 }, { f: 523.25, d: 0.14 }, { f: 587.33, d: 0.14 },
+          { f: 493.88, d: 0.28 }, { f: 0, d: 0.2 }
+        ];
+
+        let playStep = 0;
+        const playNextNote = () => {
+          if (!this.bgmPlaying || !this.ctx) return;
+          const note = melody[playStep];
+          if (note.f > 0) {
+            try {
+              const osc = this.ctx.createOscillator();
+              const g = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(note.f, this.ctx.currentTime);
+              // 背景音維持在舒適的底層音量
+              g.gain.setValueAtTime(0.08, this.ctx.currentTime);
+              g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + note.d);
+              osc.connect(g);
+              g.connect(this.masterGain);
+              osc.start();
+              osc.stop(this.ctx.currentTime + note.d);
+            } catch(e) {}
+          }
+          playStep = (playStep + 1) % melody.length;
+          this.bgmTimer = setTimeout(playNextNote, note.d * 1000);
+        };
+
+        playNextNote();
+      }
+
+      playJump() {
+        this.init();
+        if (!this.ctx || this.muted) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -564,21 +640,18 @@
           osc.type = 'square';
           osc.frequency.setValueAtTime(150, now);
           osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
-          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.setValueAtTime(0.28, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
           osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          gain.connect(this.masterGain);
           osc.start(now);
           osc.stop(now + 0.19);
-        } catch (e) {
-          console.warn(e);
-        }
+        } catch (e) {}
       }
 
       playCoin() {
-        if (this.muted) return;
         this.init();
-        if (!this.ctx) return;
+        if (!this.ctx || this.muted) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -586,21 +659,18 @@
           osc.type = 'sine';
           osc.frequency.setValueAtTime(987.77, now);
           osc.frequency.setValueAtTime(1318.51, now + 0.08);
-          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.setValueAtTime(0.35, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.38);
           osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          gain.connect(this.masterGain);
           osc.start(now);
           osc.stop(now + 0.39);
-        } catch (e) {
-          console.warn(e);
-        }
+        } catch (e) {}
       }
 
       playKick() {
-        if (this.muted) return;
         this.init();
-        if (!this.ctx) return;
+        if (!this.ctx || this.muted) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -608,21 +678,18 @@
           osc.type = 'square';
           osc.frequency.setValueAtTime(450, now);
           osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
-          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.setValueAtTime(0.32, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
           osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          gain.connect(this.masterGain);
           osc.start(now);
           osc.stop(now + 0.16);
-        } catch (e) {
-          console.warn(e);
-        }
+        } catch (e) {}
       }
 
       playPipe() {
-        if (this.muted) return;
         this.init();
-        if (!this.ctx) return;
+        if (!this.ctx || this.muted) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -630,29 +697,22 @@
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(300, now);
           osc.frequency.linearRampToValueAtTime(100, now + 0.3);
-          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.setValueAtTime(0.25, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
           osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          gain.connect(this.masterGain);
           osc.start(now);
           osc.stop(now + 0.31);
-        } catch (e) {
-          console.warn(e);
-        }
+        } catch (e) {}
       }
 
       playFanfare() {
-        if (this.muted) return;
         this.init();
-        if (!this.ctx) return;
+        if (!this.ctx || this.muted) return;
         try {
           const melody = [
-            { f: 523.25, d: 0.12 },
-            { f: 659.25, d: 0.12 },
-            { f: 783.99, d: 0.12 },
-            { f: 1046.50, d: 0.25 },
-            { f: 880.00, d: 0.15 },
-            { f: 1046.50, d: 0.45 }
+            { f: 523.25, d: 0.12 }, { f: 659.25, d: 0.12 }, { f: 783.99, d: 0.12 },
+            { f: 1046.50, d: 0.25 }, { f: 880.00, d: 0.15 }, { f: 1046.50, d: 0.45 }
           ];
           let offset = 0;
           melody.forEach(n => {
@@ -661,73 +721,29 @@
             const gain = this.ctx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(n.f, now);
-            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.setValueAtTime(0.3, now);
             gain.gain.linearRampToValueAtTime(0.01, now + n.d);
             osc.connect(gain);
-            gain.connect(this.ctx.destination);
+            gain.connect(this.masterGain);
             osc.start(now);
             osc.stop(now + n.d + 0.02);
             offset += n.d;
           });
-        } catch (e) {
-          console.warn(e);
-        }
+        } catch (e) {}
       }
     }
 
     const audio = new RetroAudioEngine();
 
-    // 重新校正 7 個階段位置，精準對應關卡挑戰：
-    // Stage 1 (0): 起步 6%
-    // Stage 2 (1): 頂磚 19% (磚塊於 21%)
-    // Stage 3 (2): 前進 32%
-    // Stage 4 (3): DECISION 04 水管前 43% (水管於 50%，飛越至 53%)
-    // Stage 5 (4): 立案 62%
-    // Stage 6 (5): MAIL BLAST 踢蘑菇怪 71% (怪於 75%)
-    // Stage 7 (6): 終點旗座 90%
+    // 關卡與坐標配置
     const FLOW_NODES = {
-      0: {
-        id: 'node-0',
-        title: '客戶客訴',
-        marioX: '6%',
-        score: 1000
-      },
-      1: {
-        id: 'node-1',
-        title: '<D1-D2> 問題識別與派案',
-        marioX: '19%', // 關卡 1：頂磚塊掉金幣【STAGE 02】
-        score: 2500
-      },
-      2: {
-        id: 'node-2',
-        title: '<D3> 資訊彙整與風險評估',
-        marioX: '32%', // 平穩前行
-        score: 5000
-      },
-      3: {
-        id: 'node-3',
-        title: '符合 CICC 升級門檻？',
-        marioX: '43%', // 關卡 2：跳過食人花水管【DECISION 04】（停在水管左側起跳）
-        score: 7500
-      },
-      4: {
-        id: 'node-4',
-        title: '★ CICC 案件正式立案',
-        marioX: '62%', // 越過水管後平穩前行
-        score: 12000
-      },
-      5: {
-        id: 'node-5',
-        title: '發送 CICC 升級公告郵件',
-        marioX: '71%', // 關卡 3：踢飛蘑菇怪【MAIL BLAST】
-        score: 16000
-      },
-      6: {
-        id: 'node-6',
-        title: 'BEC / 主管層資源對齊與跨部門支援',
-        marioX: '90%', // 抵達終點旗
-        score: 25000
-      }
+      0: { id: 'node-0', title: '客戶客訴', marioX: '6%', score: 1000 },
+      1: { id: 'node-1', title: '<D1-D2> 問題識別與派案', marioX: '19%', score: 2500 },
+      2: { id: 'node-2', title: '<D3> 資訊彙整與風險評估', marioX: '32%', score: 5000 },
+      3: { id: 'node-3', title: '符合 CICC 升級門檻？', marioX: '43%', score: 7500 },
+      4: { id: 'node-4', title: '★ CICC 案件正式立案', marioX: '62%', score: 12000 },
+      5: { id: 'node-5', title: '發送 CICC 升級公告郵件', marioX: '71%', score: 16000 },
+      6: { id: 'node-6', title: 'BEC / 主管層資源對齊與跨部門支援', marioX: '90%', score: 25000 }
     };
 
     const MAIN_PATH = [0, 1, 2, 3, 4, 5, 6];
@@ -752,6 +768,31 @@
     const btnAuto = document.getElementById('btn-mode-auto');
     const zoomFocusStage = document.getElementById('zoom-focus-stage');
     
+    // 音量快速調節按鈕
+    const vol30Btn = document.getElementById('vol-30');
+    const vol50Btn = document.getElementById('vol-50');
+    const vol80Btn = document.getElementById('vol-80');
+    const volBtns = [
+      { el: vol30Btn, val: 0.3 },
+      { el: vol50Btn, val: 0.5 },
+      { el: vol80Btn, val: 0.8 }
+    ];
+
+    function applyVolumeSetting(val, activeBtn) {
+      audio.setVolume(val);
+      volBtns.forEach(item => {
+        item.el.classList.remove('bg-yellow-400', 'text-black', 'font-bold');
+        item.el.classList.add('bg-slate-700', 'text-slate-300');
+      });
+      activeBtn.classList.remove('bg-slate-700', 'text-slate-300');
+      activeBtn.classList.add('bg-yellow-400', 'text-black', 'font-bold');
+      audio.playCoin();
+    }
+
+    vol30Btn.addEventListener('click', () => applyVolumeSetting(0.3, vol30Btn));
+    vol50Btn.addEventListener('click', () => applyVolumeSetting(0.5, vol50Btn));
+    vol80Btn.addEventListener('click', () => applyVolumeSetting(0.8, vol80Btn));
+
     // 闖關道具、怪物與食人花
     const popupCoin = document.getElementById('popup-coin');
     const interactiveQblock = document.getElementById('interactive-qblock');
@@ -785,13 +826,13 @@
 
     zoomFocusStage.addEventListener('click', closeZoom);
 
-    // 三大關卡動作觸發邏輯
+    // 關卡特技動作觸發
     function triggerStageAdventureAction(stepIdx) {
       marioSpriteBox.classList.remove('animate-hit-block', 'animate-leap-clean');
       piranhaPlant.classList.remove('piranha-retreat');
 
       if (stepIdx === 1) {
-        // 關卡 1：STAGE 02 -> 頂磚塊掉金幣
+        // STAGE 02：頂磚塊掉金幣
         setTimeout(() => {
           marioSpriteBox.classList.add('animate-hit-block');
           setTimeout(() => {
@@ -814,7 +855,7 @@
           }, 850);
         }, 300);
       } else if (stepIdx === 3) {
-        // 關卡 2：DECISION 04 -> 跳過食人花水管
+        // DECISION 04：跳過食人花水管
         setTimeout(() => {
           piranhaPlant.classList.add('piranha-retreat');
           setTimeout(() => {
@@ -826,7 +867,7 @@
           }, 240);
         }, 350);
       } else if (stepIdx === 5) {
-        // 關卡 3：STAGE 06 / MAIL BLAST -> 踢飛板栗蘑菇怪
+        // MAIL BLAST：踢飛板栗蘑菇怪
         setTimeout(() => {
           marioSpriteBox.classList.add('animate-hit-block');
           setTimeout(() => {
@@ -835,7 +876,7 @@
           }, 180);
         }, 300);
       } else if (stepIdx === 6) {
-        // STAGE 07 -> 通關抵達終點旗
+        // STAGE 07：通關號角
         setTimeout(() => {
           audio.playFanfare();
           marioSpriteBox.classList.add('animate-hit-block');
@@ -857,17 +898,13 @@
         activeCard.classList.add('ring-4', 'ring-yellow-400', 'scale-105');
       }
 
-      // 角色朝向控制
       if (stepIdx < prevStepIdx) {
         marioSpriteBox.style.transform = 'scaleX(-1)';
       } else {
         marioSpriteBox.style.transform = 'scaleX(1)';
       }
 
-      // 平滑奔跑至 X 座標
       marioEl.style.left = nodeData.marioX;
-      
-      // 觸發對應關卡特技動作
       triggerStageAdventureAction(stepIdx);
 
       if (triggerAudio && stepIdx !== 1 && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 6) {
@@ -897,7 +934,6 @@
       marioSpriteBox.classList.remove('animate-hit-block', 'animate-leap-clean');
       piranhaPlant.classList.remove('piranha-retreat');
       
-      // 重置磚塊與板栗怪
       interactiveQblock.classList.add('bg-[#fc9838]', 'animate-retro-qblock');
       interactiveQblock.classList.remove('bg-[#b84418]');
       interactiveQblock.innerHTML = `
@@ -983,7 +1019,7 @@
       const nodeObj = FLOW_NODES[key];
       const el = document.getElementById(nodeObj.id);
       if (el) {
-        el.addEventListener('click', (e) => {
+        el.addEventListener('click', () => {
           stopAutoPlay();
           const targetIdx = MAIN_PATH.indexOf(Number(key));
           if (targetIdx !== -1) {
@@ -1000,7 +1036,15 @@
       }
     });
 
+    // 點擊頁面任意處啟動音訊環境與背景音樂
+    window.addEventListener('click', () => {
+      audio.init();
+      audio.startBGM();
+    }, { once: true });
+
     window.addEventListener('keydown', (e) => {
+      audio.init();
+      audio.startBGM();
       if (e.key === 'Escape') {
         closeZoom();
       } else if (e.key === 'ArrowRight' || e.key === ' ') {
