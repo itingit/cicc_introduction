@@ -857,11 +857,6 @@
         <button class="btn-pixel btn-yellow" id="btn-reset">
           <i class="fa-solid fa-rotate-right"></i> 重置
         </button>
-        
-        <!-- 背景音樂 BGM 開關 -->
-        <button class="btn-pixel" id="btn-bgm-toggle" style="background:#5c94fc; box-shadow:0 3px #004080;">
-          <i class="fa-solid fa-music" id="bgm-icon"></i> BGM: 關
-        </button>
 
         <!-- 30% / 50% / 80% 音量切換組 -->
         <div class="volume-control-group">
@@ -1297,15 +1292,11 @@
 
     const dimensionOrder = ['impact', 'trend', 'urgency', 'risk'];
     let soundEnabled = true;
-    let bgmEnabled = false;
     let masterVolume = 0.5; // 預設 50%
     let isDemoRunning = false;
     let audioCtx = null;
     let masterGain = null;
     let sfxGain = null;
-    let bgmGain = null;
-    let bgmTimer = null;
-    let bgmStep = 0;
 
     function initAudio() {
       if (!audioCtx) {
@@ -1320,11 +1311,6 @@
         sfxGain = audioCtx.createGain();
         sfxGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
         sfxGain.connect(masterGain);
-
-        // BGM 獨立節點（柔和音量比例）
-        bgmGain = audioCtx.createGain();
-        bgmGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-        bgmGain.connect(masterGain);
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -1346,61 +1332,6 @@
       });
       // 提示音
       playTone(587.33, 'triangle', 0.08);
-    }
-
-    /* 經典 8-Bit 瑪利歐風格輕快背景音節奏 */
-    const bgmNotes = [
-      659.25, 659.25, 0, 659.25, 0, 523.25, 659.25, 0, 783.99, 0, 0, 0, 392.00, 0, 0, 0,
-      523.25, 0, 0, 392.00, 0, 0, 329.63, 0, 0, 440.00, 0, 493.88, 0, 466.16, 440.00, 0,
-      392.00, 659.25, 783.99, 880.00, 0, 698.46, 783.99, 0, 659.25, 0, 523.25, 587.33, 493.88, 0
-    ];
-
-    function stepBgm() {
-      if (!bgmEnabled || !soundEnabled) return;
-      initAudio();
-      const freq = bgmNotes[bgmStep % bgmNotes.length];
-      if (freq > 0) {
-        try {
-          const osc = audioCtx.createOscillator();
-          const noteGain = audioCtx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-          noteGain.gain.setValueAtTime(0.09, audioCtx.currentTime);
-          noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-          osc.connect(noteGain);
-          noteGain.connect(bgmGain);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.13);
-        } catch (e) {}
-      }
-      bgmStep++;
-      bgmTimer = setTimeout(stepBgm, 150);
-    }
-
-    function toggleBgm(force) {
-      if (force !== undefined) {
-        bgmEnabled = force;
-      } else {
-        bgmEnabled = !bgmEnabled;
-      }
-      const btn = document.getElementById('btn-bgm-toggle');
-      const icon = document.getElementById('bgm-icon');
-      if (bgmEnabled && soundEnabled) {
-        initAudio();
-        btn.innerHTML = '<i class="fa-solid fa-music"></i> BGM: 開';
-        btn.style.background = '#2ecc71';
-        btn.style.boxShadow = '0 3px #0f5c27';
-        if (!bgmTimer) stepBgm();
-      } else {
-        bgmEnabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-music-slash"></i> BGM: 關';
-        btn.style.background = '#5c94fc';
-        btn.style.boxShadow = '0 3px #004080';
-        if (bgmTimer) {
-          clearTimeout(bgmTimer);
-          bgmTimer = null;
-        }
-      }
     }
 
     function playTone(freq, type, duration, delay = 0) {
@@ -1749,10 +1680,6 @@
       });
     });
 
-    document.getElementById('btn-bgm-toggle').addEventListener('click', () => {
-      toggleBgm();
-    });
-
     document.getElementById('btn-demo-walk').addEventListener('click', runDemoAnimation);
     document.getElementById('btn-reset').addEventListener('click', () => resetAll(true));
 
@@ -1769,10 +1696,6 @@
         icon.className = 'fa-solid fa-volume-xmark';
         btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> 音效: 關';
         if (masterGain && audioCtx) masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        if (bgmTimer) {
-          clearTimeout(bgmTimer);
-          bgmTimer = null;
-        }
       }
     });
 

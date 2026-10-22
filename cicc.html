@@ -165,7 +165,7 @@
   <!-- 1600x900 核心舞台 -->
   <div id="viewport-container">
 
-    <!-- Top Retro HUD Banner (新增 30% / 50% / 80% 快速音量調節區) -->
+    <!-- Top Retro HUD Banner (30% / 50% / 80% 快速音量調節區) -->
     <header class="w-full bg-[#1e1c18]/90 backdrop-blur border-b-4 border-black text-white px-8 py-3.5 z-50 shadow-lg">
       <div class="w-full flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -383,7 +383,7 @@
                 <span class="bg-blue-100 text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded border-2 border-blue-300">MAIL BLAST</span>
               </div>
             </div>
-            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2.5 rounded border-2 border-slate-300">
+            <p class="text-base text-gray-800 font-bold mt-2 leading-relaxed bg-slate-100 p-2 rounded border-2 border-slate-300">
               同步對齊利害關係人，透明化事件狀態與應變窗口。
             </p>
             <div class="mario-spot absolute -bottom-6 left-1/2 -translate-x-1/2"></div>
@@ -539,16 +539,13 @@
 
     document.addEventListener('fullscreenchange', applyScale);
 
-    // 復古音訊引擎：含 BGM 背景音與音效主音量控制
+    // 復古音訊引擎：專注處理互動音效與主音量設定（已移除 BGM）
     class RetroAudioEngine {
       constructor() {
         this.ctx = null;
         this.masterVolume = 0.5; // 預設 50%
         this.muted = false;
-        this.bgmOscs = [];
-        this.bgmGain = null;
-        this.bgmPlaying = false;
-        this.bgmInterval = null;
+        this.masterGain = null;
       }
 
       init() {
@@ -583,51 +580,6 @@
           this.masterGain.gain.linearRampToValueAtTime(targetVol, this.ctx.currentTime + 0.05);
         }
         return !this.muted;
-      }
-
-      // 8-bit 背景音樂循環生成器
-      startBGM() {
-        if (this.bgmPlaying) return;
-        this.init();
-        if (!this.ctx) return;
-        this.bgmPlaying = true;
-
-        const melody = [
-          { f: 659.25, d: 0.14 }, { f: 659.25, d: 0.14 }, { f: 0, d: 0.14 }, { f: 659.25, d: 0.14 },
-          { f: 0, d: 0.14 }, { f: 523.25, d: 0.14 }, { f: 659.25, d: 0.28 }, { f: 783.99, d: 0.28 },
-          { f: 0, d: 0.28 }, { f: 392.00, d: 0.28 }, { f: 0, d: 0.28 },
-          { f: 523.25, d: 0.2 }, { f: 0, d: 0.1 }, { f: 392.00, d: 0.2 }, { f: 0, d: 0.1 },
-          { f: 329.63, d: 0.2 }, { f: 0, d: 0.1 }, { f: 440.00, d: 0.2 }, { f: 493.88, d: 0.2 },
-          { f: 466.16, d: 0.14 }, { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.18 }, { f: 659.25, d: 0.18 },
-          { f: 783.99, d: 0.18 }, { f: 880.00, d: 0.2 }, { f: 698.46, d: 0.14 }, { f: 783.99, d: 0.14 },
-          { f: 0, d: 0.14 }, { f: 659.25, d: 0.2 }, { f: 523.25, d: 0.14 }, { f: 587.33, d: 0.14 },
-          { f: 493.88, d: 0.28 }, { f: 0, d: 0.2 }
-        ];
-
-        let playStep = 0;
-        const playNextNote = () => {
-          if (!this.bgmPlaying || !this.ctx) return;
-          const note = melody[playStep];
-          if (note.f > 0) {
-            try {
-              const osc = this.ctx.createOscillator();
-              const g = this.ctx.createGain();
-              osc.type = 'triangle';
-              osc.frequency.setValueAtTime(note.f, this.ctx.currentTime);
-              // 背景音維持在舒適的底層音量
-              g.gain.setValueAtTime(0.08, this.ctx.currentTime);
-              g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + note.d);
-              osc.connect(g);
-              g.connect(this.masterGain);
-              osc.start();
-              osc.stop(this.ctx.currentTime + note.d);
-            } catch(e) {}
-          }
-          playStep = (playStep + 1) % melody.length;
-          this.bgmTimer = setTimeout(playNextNote, note.d * 1000);
-        };
-
-        playNextNote();
       }
 
       playJump() {
@@ -1036,15 +988,7 @@
       }
     });
 
-    // 點擊頁面任意處啟動音訊環境與背景音樂
-    window.addEventListener('click', () => {
-      audio.init();
-      audio.startBGM();
-    }, { once: true });
-
     window.addEventListener('keydown', (e) => {
-      audio.init();
-      audio.startBGM();
       if (e.key === 'Escape') {
         closeZoom();
       } else if (e.key === 'ArrowRight' || e.key === ' ') {
